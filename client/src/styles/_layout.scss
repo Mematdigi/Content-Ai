@@ -1,0 +1,301 @@
+// =========================================================================
+// Layout
+// =========================================================================
+@import 'variables';
+@import 'mixins';
+
+.app-shell {
+  display: grid;
+  grid-template-columns: $sidebar-width 1fr;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s ease, color 0.3s ease;
+
+  &.is-collapsed {
+    grid-template-columns: $sidebar-collapsed-width 1fr;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ---- Sidebar -----------------------------------------------------------
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  @include scrollbar;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    z-index: 1040;
+    width: $sidebar-width;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+
+    &.is-open {
+      transform: translateX(0);
+    }
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1.25rem 1rem;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--text);
+
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: var(--brand-gradient);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+      box-shadow: $shadow-glow;
+    }
+  }
+
+  &__section {
+    padding: 0.5rem 0.75rem;
+
+    &-label {
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 0.5rem 0.75rem;
+    }
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: $radius-md;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 500;
+    transition: background 0.15s ease, color 0.15s ease;
+    @include focus-ring;
+
+    i {
+      font-size: 1.05rem;
+      width: 20px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    &:hover {
+      background: var(--surface-alt);
+      color: var(--text);
+    }
+
+    &.is-active {
+      background: var(--brand-soft);
+      color: var(--brand);
+
+      i {
+        color: var(--brand);
+      }
+    }
+  }
+
+  &__footer {
+    margin-top: auto;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+}
+
+// ---- Top navbar --------------------------------------------------------
+.app-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  height: $navbar-height;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  backdrop-filter: blur(12px);
+
+  &__title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .icon-button {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+    @include focus-ring;
+
+    &:hover {
+      background: var(--surface-alt);
+      transform: translateY(-1px);
+    }
+  }
+}
+
+// ---- Main content area --------------------------------------------------
+.app-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page {
+  padding: 2rem 2rem 4rem;
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 1.25rem 1rem 3rem;
+  }
+
+  &__header {
+    margin-bottom: 1.75rem;
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 0 0 0.4rem;
+      color: var(--text);
+    }
+
+    p {
+      color: var(--text-muted);
+      margin: 0;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+// ---- Auth shell (login / register) -------------------------------------
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--bg);
+  color: var(--text);
+
+  @media (max-width: 992px) {
+    grid-template-columns: 1fr;
+  }
+
+  &__left {
+    background: var(--brand-gradient);
+    color: #fff;
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+
+    @media (max-width: 992px) {
+      display: none;
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      bottom: -300px;
+      right: -200px;
+    }
+
+    .brand-block {
+      position: relative;
+      z-index: 1;
+    }
+
+    h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1.1;
+      margin: 1.5rem 0 1rem;
+      max-width: 32ch;
+    }
+
+    p {
+      font-size: 1.05rem;
+      opacity: 0.9;
+      max-width: 40ch;
+    }
+
+    .feature-list {
+      position: relative;
+      z-index: 1;
+      list-style: none;
+      padding: 0;
+      margin: 2rem 0 0;
+
+      li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0;
+
+        i {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.2);
+          display: grid;
+          place-items: center;
+          font-size: 0.85rem;
+        }
+      }
+    }
+  }
+
+  &__right {
+    padding: 3rem 2rem;
+    display: grid;
+    place-items: center;
+  }
+
+  &__form {
+    width: 100%;
+    max-width: 420px;
+  }
+}

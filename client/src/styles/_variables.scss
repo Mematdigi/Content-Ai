@@ -1,0 +1,64 @@
+// =========================================================================
+// Design tokens
+// =========================================================================
+// All colors / radii / spacing live here so they're trivially themeable.
+// Imported BEFORE bootstrap so that Bootstrap's $primary, $body-bg etc.
+// pick up our overrides.
+
+// ---- Brand palette ------------------------------------------------------
+$brand-violet: #7c3aed;
+$brand-violet-600: #6d28d9;
+$brand-violet-700: #5b21b6;
+$brand-blue: #3b82f6;
+$brand-pink: #ec4899;
+
+$brand-gradient: linear-gradient(135deg, $brand-violet 0%, $brand-blue 100%);
+$brand-gradient-soft: linear-gradient(135deg, rgba(124, 58, 237, 0.12) 0%, rgba(59, 130, 246, 0.12) 100%);
+
+// ---- Light theme --------------------------------------------------------
+$light-bg: #f7f7fb;
+$light-surface: #ffffff;
+$light-surface-alt: #f1f1f6;
+$light-border: #e5e7eb;
+$light-text: #1f2937;
+$light-text-muted: #6b7280;
+
+// ---- Dark theme ---------------------------------------------------------
+$dark-bg: #0b0b14;
+$dark-surface: #15151f;
+$dark-surface-alt: #1c1c2a;
+$dark-border: #2a2a3a;
+$dark-text: #e8e8f0;
+$dark-text-muted: #9ca3af;
+
+// ---- Sizing -------------------------------------------------------------
+$sidebar-width: 260px;
+$sidebar-collapsed-width: 72px;
+$navbar-height: 64px;
+
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-xl: 22px;
+
+// ---- Shadows ------------------------------------------------------------
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+$shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+$shadow-glow: 0 0 24px rgba(124, 58, 237, 0.35);
+
+// ---- Bootstrap overrides ------------------------------------------------
+// These cascade into Bootstrap's own components.
+$primary: $brand-violet;
+$secondary: $brand-blue;
+$body-color: $light-text;
+$body-bg: $light-bg;
+$border-radius: $radius-md;
+$border-radius-sm: $radius-sm;
+$border-radius-lg: $radius-lg;
+
+$font-family-sans-serif: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+$headings-font-weight: 700;
+
+$enable-shadows: true;
+$enable-rounded: true;

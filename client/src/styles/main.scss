@@ -1,0 +1,123 @@
+// =========================================================================
+// ContentForge AI - main stylesheet
+// =========================================================================
+// Order matters:
+//   1. Our variables override Bootstrap defaults.
+//   2. Bootstrap compiles its own SCSS.
+//   3. Bootstrap Icons.
+//   4. Our theme tokens (CSS variables).
+//   5. Layout + components.
+
+@import 'variables';
+
+// Bootstrap
+@import 'bootstrap/scss/bootstrap';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+// Our app
+@import 'themes';
+@import 'mixins';
+@import 'layout';
+@import 'components';
+
+// ---- Global resets / base styles --------------------------------------
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: $font-family-sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--brand);
+  text-decoration: none;
+}
+
+// ---- Bootstrap component theme harmonization --------------------------
+// Bootstrap doesn't know about our CSS variables; nudge it.
+.dropdown-menu {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  box-shadow: var(--shadow-md);
+
+  .dropdown-item {
+    color: var(--text);
+    &:hover, &:focus {
+      background: var(--surface-alt);
+      color: var(--text);
+    }
+  }
+
+  .dropdown-divider {
+    border-color: var(--border);
+  }
+}
+
+.modal-content {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.list-group-item {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.alert {
+  border-radius: $radius-md;
+}
+
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.6em;
+  border-radius: 999px;
+}
+
+// Inter font from CDN — loaded via main.jsx for performance, but provide a
+// system fallback so first paint is not blank.
+.font-display {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+.text-brand {
+  color: var(--brand) !important;
+}
+
+.gradient-text {
+  @include gradient-text;
+}
+
+// Utility: surface card background that respects the theme.
+.bg-surface {
+  background: var(--surface) !important;
+}
+
+.bg-surface-alt {
+  background: var(--surface-alt) !important;
+}
+
+.border-app {
+  border-color: var(--border) !important;
+}
