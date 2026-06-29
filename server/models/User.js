@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const PLAN_LIMITS = {
-  free: 5000,
+  free: 9999999,
   pro: 100000,
   enterprise: 1000000,
 };

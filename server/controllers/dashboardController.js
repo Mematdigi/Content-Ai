@@ -23,7 +23,7 @@ const getDashboardStats = asyncHandler(async (req, res) => {
     Article.find({ user: userId })
       .sort({ createdAt: -1 })
       .limit(5)
-      .select('title seoScore aiScoreAfter wordCount createdAt'),
+      .select('title seoScore aiScoreAfter wordCount createdAt status'),
   ]);
 
   const stats = agg[0] || {

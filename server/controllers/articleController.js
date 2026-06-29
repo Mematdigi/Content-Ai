@@ -4,6 +4,8 @@ const { runPipeline } = require('../services/aiPipeline');
 const { fetchResearchBrief } = require('../services/webScraper');
 const { scoreArticle } = require('../services/seoScorer');
 const { buildSuggestions } = require('../services/suggestions');
+const { replaceImagePlaceholders } = require('../services/imageService');
+const { findRelatedArticles, insertInternalLinks } = require('../services/internalLinker');
 
 function countWords(text = '') {
   return text.trim().split(/\s+/).filter(Boolean).length;
@@ -27,6 +29,9 @@ const generateArticle = asyncHandler(async (req, res) => {
     includeFaqs = true,
     includeMeta = true,
     includeImages = false,
+    referenceMode = 'auto',
+    customUrls = [],
+    customDocText = '',
   } = req.body;
 
   if (!topic) {
@@ -47,12 +52,71 @@ const generateArticle = asyncHandler(async (req, res) => {
     topic,
     primaryKeyword,
     secondaryKeywords,
+    articleType,
+    referenceMode,
+    customUrls,
+    customDocText,
   });
+
+  // ---- Guard: refuse to generate if time-sensitive data is missing ------
+  if (research.insufficientData) {
+    const dateLabel = research.temporalInfo
+      ? `${research.temporalInfo.label} (${research.temporalInfo.date})`
+      : 'the requested date';
+    const noDataContent = [
+      `# ${topic}`,
+      '',
+      `No verified information was found for **${dateLabel}**.`,
+      '',
+      `We searched multiple sources but could not retrieve confirmed schedules, fixtures, or event details for this date. ` +
+      `This may be because the official schedule has not been published yet, or because real-time data is currently unavailable.`,
+      '',
+      '**What you can do:**',
+      '- Check the official website of the tournament or league for the latest schedule.',
+      '- Try again closer to the event date when official fixtures are typically announced.',
+      '- Search for a specific matchup (e.g., "Team A vs Team B") instead of a general date-based query.',
+    ].join('\n');
+
+    const wordCount = countWords(noDataContent);
+    const article = await Article.create({
+      user: req.user._id,
+      title: topic,
+      metaTitle: '',
+      metaDescription: '',
+      content: noDataContent,
+      primaryKeyword,
+      secondaryKeywords,
+      tone,
+      audience,
+      language,
+      articleType,
+      pointOfView,
+      targetWordCount,
+      includeFaqs,
+      includeImages,
+      wordCount,
+      readingTimeMinutes: 1,
+      seoScore: 0,
+      seoReport: {},
+      aiScoreBefore: 0,
+      aiScoreAfter: 0,
+      sources: research.sources,
+      suggestions: [{ type: 'subtopic', text: 'Insufficient real-time data', detail: 'Try a more specific query or check back when official schedules are published.' }],
+      pipelineSteps: [{ step: 'research', model: 'web-scraper', durationMs: 0, status: 'error' }],
+      images: [],
+      status: 'completed',
+    });
+
+    return res.status(201).json({ article, insufficientData: true });
+  }
 
   // ---- Steps 1-4: Multi-model pipeline ---------------------------------
   const result = await runPipeline({
     topic,
     brief: research.brief,
+    isHypothetical: research.isHypothetical,
+    insufficientData: research.insufficientData || false,
+    contentMode: research.contentMode || 'knowledge',
     primaryKeyword,
     secondaryKeywords,
     targetWordCount,
@@ -64,7 +128,22 @@ const generateArticle = asyncHandler(async (req, res) => {
     pointOfView,
     includeFaqs,
     includeMeta,
+    includeImages,
+    authorName: req.user.name,
   });
+
+  // ---- Step 4.5: Replace image placeholders with real images ------------
+  const { content: contentWithImages, images: fetchedImages } =
+    await replaceImagePlaceholders(result.content);
+  result.content = contentWithImages;
+  result.images = [...(result.images || []), ...fetchedImages];
+
+  // ---- Step 4.6: Add internal links to related articles ----------------
+  const relatedArticles = await findRelatedArticles(req.user._id, primaryKeyword, topic);
+  if (relatedArticles.length > 0) {
+    const siteUrl = process.env.SITE_URL || '';
+    result.content = insertInternalLinks(result.content, relatedArticles, siteUrl);
+  }
 
   // ---- Step 5: SEO scoring + suggestions -------------------------------
   const seoReport = scoreArticle({
@@ -113,6 +192,7 @@ const generateArticle = asyncHandler(async (req, res) => {
     sources: research.sources,
     suggestions,
     pipelineSteps: result.pipelineSteps,
+    images: result.images || [],
     status: 'completed',
   });
 

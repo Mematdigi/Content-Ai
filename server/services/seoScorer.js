@@ -140,6 +140,96 @@ function suggestLsiKeywords(text, primary, secondary = []) {
 /**
  * Main scorer. Combines sub-checks into a single 0-100 number.
  */
+function checkSnippetReadiness(content) {
+  const lines = content.split(/\r?\n/);
+  let questionHeadingsCount = 0;
+  let matchingDirectAnswersCount = 0;
+  const issues = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (/^(##|###)\s+(.+)$/.test(line)) {
+      const headingText = line.replace(/^(##|###)\s+/, '').toLowerCase();
+      if (/\b(what|how|why|who|where|define|difference|vs)\b/i.test(headingText)) {
+        questionHeadingsCount++;
+        let nextPara = '';
+        for (let j = i + 1; j < lines.length; j++) {
+          const l = lines[j].trim();
+          if (l === '') continue;
+          if (/^(#|##|###)/.test(l)) break;
+          nextPara = l;
+          break;
+        }
+        if (nextPara) {
+          const cleanPara = nextPara.replace(/[#*`_>]/g, '').trim();
+          const words = cleanPara.split(/\s+/).filter(Boolean);
+          if (words.length >= 35 && words.length <= 65) {
+            matchingDirectAnswersCount++;
+          } else {
+            issues.push(`Snippet optimization: Paragraph under question heading "${line.replace(/^(##|###)\s+/, '')}" should be 35-65 words (currently ${words.length} words).`);
+          }
+        } else {
+          issues.push(`Snippet optimization: Missing answer paragraph under question heading "${line.replace(/^(##|###)\s+/, '')}".`);
+        }
+      }
+    }
+  }
+
+  const score = questionHeadingsCount > 0
+    ? Math.round((matchingDirectAnswersCount / questionHeadingsCount) * 15)
+    : 10; // 10 points default if no question headings exist
+
+  return { score, issues, hasSnippetHeadings: questionHeadingsCount > 0 };
+}
+
+function checkKeywordInIntro(content, primaryKeyword) {
+  if (!primaryKeyword) return false;
+  const stripped = stripMarkdown(content);
+  const first100 = stripped.split(/\s+/).slice(0, 100).join(' ').toLowerCase();
+  return first100.includes(primaryKeyword.toLowerCase());
+}
+
+function checkKeywordInHeadings(content, primaryKeyword) {
+  if (!primaryKeyword) return { h2Count: 0, h3Count: 0, h2WithKw: 0, h3WithKw: 0 };
+  const kw = primaryKeyword.toLowerCase();
+  const headings = [];
+  const regex = /^(#{1,6})\s+(.+)$/gm;
+  let m;
+  while ((m = regex.exec(content))) {
+    headings.push({ level: m[1].length, text: m[2].trim() });
+  }
+  const h2s = headings.filter(h => h.level === 2);
+  const h3s = headings.filter(h => h.level === 3);
+  return {
+    h2Count: h2s.length,
+    h3Count: h3s.length,
+    h2WithKw: h2s.filter(h => h.text.toLowerCase().includes(kw)).length,
+    h3WithKw: h3s.filter(h => h.text.toLowerCase().includes(kw)).length,
+  };
+}
+
+function checkSchemaInContent(content) {
+  const match = content.match(/<script\s+type="application\/ld\+json">([\s\S]*?)<\/script>/i);
+  if (!match) return { ok: false, value: '' };
+  try {
+    JSON.parse(match[1]);
+    return { ok: true, value: match[1].trim() };
+  } catch {
+    return { ok: false, value: match[1] || '' };
+  }
+}
+
+function checkFaqSection(content) {
+  const faqHeading = /^#{1,3}\s+.*FAQ/im.test(content);
+  if (!faqHeading) return { hasFaq: false, count: 0 };
+  const faqMatch = content.match(/^#{1,3}\s+.*FAQ[\s\S]*/im);
+  if (!faqMatch) return { hasFaq: false, count: 0 };
+  const faqSection = faqMatch[0];
+  const questions = faqSection.match(/^#{1,4}\s+.+\?/gm) ||
+                    faqSection.match(/\*\*[^*]+\?\*\*/g) || [];
+  return { hasFaq: true, count: questions.length };
+}
+
 function scoreArticle({ content, title, metaTitle, metaDescription, primaryKeyword, secondaryKeywords = [], targetWordCount }) {
   const words = getWords(content);
   const wordCount = words.length;
@@ -156,59 +246,99 @@ function scoreArticle({ content, title, metaTitle, metaDescription, primaryKeywo
     ? metaDescription.length >= 150 && metaDescription.length <= 160
     : false;
 
-  // ---- Score breakdown (each component capped) -------------------------
+  // New checks
+  const kwInIntro = checkKeywordInIntro(content, primaryKeyword);
+  const kwInHeadings = checkKeywordInHeadings(content, primaryKeyword);
+  const snippet = checkSnippetReadiness(content);
+  const schema = checkSchemaInContent(content);
+  const faq = checkFaqSection(content);
+
+  // ---- Score breakdown (100 points total) -------------------------
   let score = 0;
   const parts = [];
 
-  // Word count vs target (max 15)
+  // 1. Word count vs target (max 10)
   if (targetWordCount && wordCount) {
     const ratio = wordCount / targetWordCount;
-    const wcPart = ratio >= 0.85 && ratio <= 1.25 ? 15 : ratio >= 0.6 ? 10 : 4;
+    const wcPart = ratio >= 0.85 && ratio <= 1.25 ? 10 : ratio >= 0.6 ? 6 : 3;
     score += wcPart;
     parts.push(`word count (${wordCount}/${targetWordCount}): +${wcPart}`);
   } else {
-    score += 10;
+    score += 6;
+    parts.push(`word count: +6`);
   }
 
-  // Primary keyword density 0.5%-2.5% is healthy (max 25)
+  // 2. Primary keyword density 0.5%-2.5% (max 15)
   let kwPart = 0;
-  if (primary.density >= 0.5 && primary.density <= 2.5) kwPart = 25;
-  else if (primary.density > 0 && primary.density < 0.5) kwPart = 12;
-  else if (primary.density > 2.5 && primary.density <= 4) kwPart = 10;
+  if (primary.density >= 0.5 && primary.density <= 2.5) kwPart = 15;
+  else if (primary.density > 0 && primary.density < 0.5) kwPart = 8;
+  else if (primary.density > 2.5 && primary.density <= 4) kwPart = 5;
   else kwPart = 0;
   score += kwPart;
   parts.push(`primary keyword density (${primary.density}%): +${kwPart}`);
 
-  // Readability (max 15)
-  let readPart = 0;
-  if (readability >= 60 && readability <= 80) readPart = 15;
-  else if (readability >= 40) readPart = 10;
-  else readPart = 5;
-  score += readPart;
-  parts.push(`readability (${readability}): +${readPart}`);
+  // 3. Keyword in first 100 words (max 5)
+  const introPart = kwInIntro ? 5 : 0;
+  score += introPart;
+  parts.push(`keyword in intro: +${introPart}`);
 
-  // Heading structure (max 15)
-  const hPart = headingStructure.valid ? 15 : Math.max(5, 15 - headingStructure.issues.length * 4);
+  // 4. Keyword in H2/H3 headings (max 10)
+  let hKwPart = 0;
+  if (kwInHeadings.h2WithKw >= 2) hKwPart += 5;
+  else if (kwInHeadings.h2WithKw >= 1) hKwPart += 3;
+  if (kwInHeadings.h3WithKw >= 1) hKwPart += 5;
+  else if (kwInHeadings.h3Count >= 1) hKwPart += 2;
+  score += hKwPart;
+  parts.push(`keyword in headings (${kwInHeadings.h2WithKw} H2s, ${kwInHeadings.h3WithKw} H3s): +${hKwPart}`);
+
+  // 5. Readability (max 10)
+  let readPart = 0;
+  if (readability >= 60 && readability <= 80) readPart = 10;
+  else if (readability >= 40) readPart = 7;
+  else readPart = 3;
+  score += readPart;
+  parts.push(`readability (Flesch ${readability}): +${readPart}`);
+
+  // 6. Heading structure — proper H1/H2/H3 hierarchy (max 10)
+  const hPart = headingStructure.valid ? 10 : Math.max(3, 10 - headingStructure.issues.length * 3);
   score += hPart;
   parts.push(`heading structure: +${hPart}`);
 
-  // Meta title (max 10)
-  const mtPart = metaTitleOk ? 10 : metaTitleStr ? 5 : 0;
+  // 7. Meta title 50-60 chars (max 5)
+  const mtPart = metaTitleOk ? 5 : metaTitleStr ? 2 : 0;
   score += mtPart;
   parts.push(`meta title (${metaTitleStr.length} chars): +${mtPart}`);
 
-  // Meta description (max 10)
-  const mdPart = metaDescOk ? 10 : metaDescription ? 5 : 0;
+  // 8. Meta description 150-160 chars (max 5)
+  const mdPart = metaDescOk ? 5 : metaDescription ? 2 : 0;
   score += mdPart;
   parts.push(`meta description (${(metaDescription || '').length} chars): +${mdPart}`);
 
-  // Secondary keyword usage (max 10)
+  // 9. Secondary keywords used (max 5)
   const usedSecondary = secondary.filter((s) => s.count > 0).length;
   const sPart = secondaryKeywords.length
-    ? Math.round((usedSecondary / secondaryKeywords.length) * 10)
-    : 5;
+    ? Math.round((usedSecondary / secondaryKeywords.length) * 5)
+    : 3;
   score += sPart;
-  parts.push(`secondary keywords used (${usedSecondary}/${secondaryKeywords.length || 0}): +${sPart}`);
+  parts.push(`secondary keywords (${usedSecondary}/${secondaryKeywords.length || 0}): +${sPart}`);
+
+  // 10. Featured snippet readiness (max 10)
+  const snippetPart = Math.min(10, snippet.score);
+  score += snippetPart;
+  parts.push(`featured snippet readiness: +${snippetPart}`);
+
+  // 11. FAQ section with 5+ questions (max 5)
+  let faqPart = 0;
+  if (faq.hasFaq && faq.count >= 5) faqPart = 5;
+  else if (faq.hasFaq && faq.count >= 3) faqPart = 3;
+  else if (faq.hasFaq) faqPart = 1;
+  score += faqPart;
+  parts.push(`FAQ section (${faq.count} questions): +${faqPart}`);
+
+  // 12. JSON-LD schema markup embedded in content (max 10)
+  const schemaPart = schema.ok ? 10 : 0;
+  score += schemaPart;
+  parts.push(`JSON-LD schema: +${schemaPart}`);
 
   return {
     overall: Math.min(100, Math.round(score)),
@@ -216,31 +346,64 @@ function scoreArticle({ content, title, metaTitle, metaDescription, primaryKeywo
     keywordDensity: { primary, secondary },
     readability,
     headingStructure,
+    kwInIntro,
+    kwInHeadings,
     metaTitle: { value: metaTitleStr, length: metaTitleStr.length, ok: metaTitleOk },
     metaDescription: {
       value: metaDescription || '',
       length: (metaDescription || '').length,
       ok: metaDescOk,
     },
+    schemaMarkup: schema,
+    faq,
     lsiKeywords: lsi,
     wordCount,
     suggestions: buildSuggestions({
-      primary, secondary, readability, headingStructure, metaTitleOk, metaDescOk, lsi,
+      primary, secondary, readability, headingStructure, metaTitleOk, metaDescOk, lsi, snippet, faq, kwInIntro, kwInHeadings, schemaOk: schema.ok
     }),
   };
 }
 
-function buildSuggestions({ primary, secondary, readability, headingStructure, metaTitleOk, metaDescOk, lsi }) {
+function buildSuggestions({ primary, secondary, readability, headingStructure, metaTitleOk, metaDescOk, lsi, snippet, faq, kwInIntro, kwInHeadings, schemaOk }) {
   const out = [];
+
+  // Keyword checks
   if (primary.density === 0) out.push('Primary keyword does not appear in the article — add it 3–5 times naturally.');
+  else if (primary.density < 0.5) out.push('Primary keyword density is below 0.5% — add a few more natural mentions.');
   if (primary.density > 3) out.push('Primary keyword density is too high — reduce repetition to avoid keyword stuffing.');
-  if (readability < 50) out.push('Readability is low — shorten sentences and pick simpler words.');
+  if (kwInIntro === false) out.push('E-E-A-T: Primary keyword missing from the first 100 words — add it to the introduction.');
+  if (kwInHeadings && kwInHeadings.h2WithKw < 2) out.push('SEO: Include the primary keyword in at least 2 H2 headings.');
+  if (kwInHeadings && kwInHeadings.h3WithKw < 1) out.push('SEO: Include the primary keyword in at least 1 H3 heading.');
+
+  // Readability
+  if (readability < 50) out.push('Readability is low — shorten sentences and use simpler words.');
+
+  // Structure
   if (!headingStructure.valid) out.push(`Fix heading structure: ${headingStructure.issues.join('; ')}.`);
   if (!metaTitleOk) out.push('Meta title should be 50–60 characters.');
   if (!metaDescOk) out.push('Meta description should be 150–160 characters.');
+
+  // FAQ
+  if (!faq || !faq.hasFaq) out.push('E-E-A-T: Add a FAQ section with 5-6 questions to target People Also Ask results.');
+  else if (faq.count < 5) out.push(`FAQ section has only ${faq.count} questions — add more to target 5-6 for Featured Snippets.`);
+
+  // Snippet readiness
+  if (snippet && snippet.issues && snippet.issues.length > 0) {
+    out.push(...snippet.issues);
+  }
+  if (snippet && !snippet.hasSnippetHeadings) {
+    out.push('Featured Snippet: Use question-format headings (e.g. "What is [topic]?") with 35-65 word answers directly below.');
+  }
+
+  // Schema
+  if (!schemaOk) {
+    out.push('Schema: Add JSON-LD structured data (Article + FAQPage) for Google rich results and carousels.');
+  }
+
+  // Secondary keywords
   const unusedSecondary = secondary.filter((s) => s.count === 0).map((s) => s.keyword);
   if (unusedSecondary.length) out.push(`Mention these secondary keywords at least once: ${unusedSecondary.join(', ')}.`);
-  if (lsi.length) out.push(`Consider weaving in related terms: ${lsi.slice(0, 5).join(', ')}.`);
+  if (lsi.length) out.push(`LSI: Weave in related terms: ${lsi.slice(0, 5).join(', ')}.`);
   return out;
 }
 

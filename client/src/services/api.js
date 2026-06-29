@@ -1,15 +1,5 @@
 import axios from 'axios';
 
-/**
- * Single axios instance for the whole frontend. The Vite dev server
- * proxies /api -> backend, so we use a relative base URL.
- *
- * The request interceptor pulls the JWT from localStorage on every call
- * so we don't have to thread it through every component.
- *
- * The response interceptor logs the user out on 401 (auth has expired or
- * the token has been revoked) so they're prompted to sign in again.
- */
 const api = axios.create({
   baseURL: '/api',
   timeout: 120000, // generation can take a while

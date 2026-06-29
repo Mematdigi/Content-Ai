@@ -2,12 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 // Pick the user's last choice, falling back to the OS preference.
 const persisted = localStorage.getItem('cf_theme');
-const prefersDark =
-  typeof window !== 'undefined' &&
-  window.matchMedia &&
-  window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-const initial = persisted || (prefersDark ? 'dark' : 'light');
+const initial = persisted || 'dark';
 
 const themeSlice = createSlice({
   name: 'theme',

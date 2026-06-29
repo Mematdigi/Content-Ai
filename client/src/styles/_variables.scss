@@ -24,12 +24,12 @@ $light-text: #1f2937;
 $light-text-muted: #6b7280;
 
 // ---- Dark theme ---------------------------------------------------------
-$dark-bg: #0b0b14;
-$dark-surface: #15151f;
-$dark-surface-alt: #1c1c2a;
-$dark-border: #2a2a3a;
-$dark-text: #e8e8f0;
-$dark-text-muted: #9ca3af;
+$dark-bg: #09090b; // Deep sleek background
+$dark-surface: rgba(24, 24, 27, 0.65); // Semi-transparent for glass effect
+$dark-surface-alt: rgba(39, 39, 42, 0.75);
+$dark-border: rgba(255, 255, 255, 0.1);
+$dark-text: #fafafa;
+$dark-text-muted: #a1a1aa;
 
 // ---- Sizing -------------------------------------------------------------
 $sidebar-width: 260px;

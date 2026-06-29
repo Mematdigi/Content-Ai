@@ -101,39 +101,66 @@ export default function History() {
       ) : (
         <>
           <Row className="g-3">
-            {items.map((a) => (
-              <Col xs={12} sm={6} lg={4} key={a._id}>
-                <div className="cf-card cf-card--hoverable h-100 d-flex flex-column">
-                  <div className="d-flex justify-content-between align-items-start mb-2">
-                    <span className={`badge bg-${a.status === 'completed' ? 'success' : a.status === 'archived' ? 'secondary' : 'warning'}-subtle text-${a.status === 'completed' ? 'success' : a.status === 'archived' ? 'secondary' : 'warning'}`}>
-                      {a.status}
-                    </span>
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="p-0 text-muted"
-                      onClick={() => handleDelete(a._id)}
-                      title="Delete"
-                    >
-                      <i className="bi bi-trash" />
-                    </Button>
-                  </div>
-                  <Link to={`/articles/${a._id}`} className="text-decoration-none flex-grow-1">
-                    <h3 className="h6 clamp-2">{a.title || 'Untitled'}</h3>
-                    {a.metaDescription && (
-                      <p className="text-muted small clamp-3 mb-2">{a.metaDescription}</p>
-                    )}
-                  </Link>
-                  <div className="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
-                    <div className="d-flex gap-1 flex-wrap">
-                      <span className="badge bg-secondary-subtle text-secondary">SEO {a.seoScore || 0}</span>
-                      <span className="badge bg-info-subtle text-info">AI {a.aiScoreAfter ?? '—'}%</span>
+            {items.map((a, index) => {
+              const hasImage = a.images && a.images.length > 0;
+              const imageUrl = hasImage ? a.images[0].url : null;
+              
+              return (
+                <Col xs={12} sm={6} lg={4} key={a._id}>
+                  <div 
+                    className="cf-card cf-card--hoverable cf-card--article h-100 d-flex flex-column cf-card-animated"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="cf-card__image-container">
+                      {hasImage ? (
+                        <img 
+                          src={imageUrl} 
+                          alt={a.title || 'Article thumbnail'} 
+                          className="cf-card__image" 
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="cf-card__image-placeholder" />
+                      )}
+                      <span className={`badge cf-card__status-badge bg-${a.status === 'completed' ? 'success' : a.status === 'archived' ? 'secondary' : 'warning'}-subtle text-${a.status === 'completed' ? 'success' : a.status === 'archived' ? 'secondary' : 'warning'}`}>
+                        {a.status}
+                      </span>
                     </div>
-                    <span className="text-muted small">{a.wordCount || 0}w</span>
+
+                    <div className="cf-card__body d-flex flex-column flex-grow-1">
+                      <div className="d-flex justify-content-between align-items-start mb-2">
+                        <Link to={`/articles/${a._id}`} className="text-decoration-none flex-grow-1">
+                          <h3 className="cf-card__title clamp-2 mb-0">{a.title || 'Untitled'}</h3>
+                        </Link>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="p-0 text-muted ms-2"
+                          onClick={() => handleDelete(a._id)}
+                          title="Delete"
+                        >
+                          <i className="bi bi-trash" />
+                        </Button>
+                      </div>
+
+                      <Link to={`/articles/${a._id}`} className="text-decoration-none flex-grow-1">
+                        {a.metaDescription && (
+                          <p className="text-muted small clamp-3 mb-2">{a.metaDescription}</p>
+                        )}
+                      </Link>
+
+                      <div className="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                        <div className="d-flex gap-1 flex-wrap">
+                          <span className="badge bg-secondary-subtle text-secondary">SEO {a.seoScore || 0}</span>
+                          <span className="badge bg-info-subtle text-info">AI {a.aiScoreAfter ?? '—'}%</span>
+                        </div>
+                        <span className="text-muted small">{a.wordCount || 0}w</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </Col>
-            ))}
+                </Col>
+              );
+            })}
           </Row>
 
           {totalPages > 1 && (

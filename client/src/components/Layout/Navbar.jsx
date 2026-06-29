@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Dropdown } from 'react-bootstrap';
+import { motion } from 'framer-motion';
 import { toggleTheme, toggleMobileSidebar } from '../../store/slices/themeSlice';
 import { logout } from '../../store/slices/authSlice';
 
@@ -20,8 +21,7 @@ export default function Navbar() {
   const themeMode = useSelector((s) => s.theme.mode);
   const user = useSelector((s) => s.auth.user);
 
-  // Match exact path first, then fall back to a prefix (so /articles/:id
-  // shows "Article" rather than nothing).
+
   const title =
     TITLES[pathname] ||
     (pathname.startsWith('/articles/') ? 'Article' : 'ContentForge');
@@ -34,30 +34,39 @@ export default function Navbar() {
     .toUpperCase();
 
   return (
-    <header className="app-navbar">
+    <motion.header 
+      className="app-navbar"
+      initial={{ y: -50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
       <div className="d-flex align-items-center gap-2">
-        <button
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           className="icon-button d-md-none"
           onClick={() => dispatch(toggleMobileSidebar())}
           aria-label="Open menu"
         >
           <i className="bi bi-list" />
-        </button>
+        </motion.button>
         <div className="app-navbar__title">{title}</div>
       </div>
 
       <div className="app-navbar__actions">
-        <button
+        <motion.button
+          whileHover={{ scale: 1.05, rotate: 15 }}
+          whileTap={{ scale: 0.95 }}
           className="icon-button"
           onClick={() => dispatch(toggleTheme())}
           aria-label="Toggle theme"
           title={`Switch to ${themeMode === 'dark' ? 'light' : 'dark'} mode`}
         >
           <i className={`bi ${themeMode === 'dark' ? 'bi-sun' : 'bi-moon-stars'}`} />
-        </button>
+        </motion.button>
 
         <Dropdown align="end">
-          <Dropdown.Toggle as="button" className="icon-button" style={{ width: 'auto', padding: '0 0.6rem' }}>
+          <Dropdown.Toggle as={motion.button} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="icon-button d-flex align-items-center" style={{ width: 'auto', padding: '0 0.6rem' }}>
             <span
               style={{
                 display: 'inline-grid',
@@ -76,7 +85,7 @@ export default function Navbar() {
             </span>
             <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{user?.name}</span>
           </Dropdown.Toggle>
-          <Dropdown.Menu>
+          <Dropdown.Menu as={motion.div} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ backdropFilter: 'blur(12px)', background: 'var(--surface)' }}>
             <Dropdown.Item onClick={() => navigate('/settings')}>
               <i className="bi bi-gear me-2" /> Settings
             </Dropdown.Item>
@@ -95,6 +104,6 @@ export default function Navbar() {
           </Dropdown.Menu>
         </Dropdown>
       </div>
-    </header>
+    </motion.header>
   );
 }

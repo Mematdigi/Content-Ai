@@ -1,4 +1,6 @@
 const asyncHandler = require('express-async-handler');
+const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
 const { humanize, estimateAiScore } = require('../services/humanizer');
 const { scoreArticle } = require('../services/seoScorer');
 const { smartComplete } = require('../services/aiPipeline');
@@ -104,6 +106,124 @@ const rewriteInline = asyncHandler(async (req, res) => {
   res.json({ text: rewritten, model });
 });
 
+// Helper to extract JSON from text
+function localExtractJson(text) {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  const raw = fenced ? fenced[1] : text;
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start === -1 || end === -1) return {};
+  try {
+    return JSON.parse(raw.slice(start, end + 1));
+  } catch {
+    return {};
+  }
+}
+
+// @desc   Auto-suggest topic, target location, language, and audience description
+// @route  POST /api/tools/auto-pick-topic
+const autoPickTopic = asyncHandler(async (req, res) => {
+  const system = `You are a creative content strategist. Generate a highly engaging, trending topic for an article.
+Output ONLY a JSON object. No markdown tags, no notes, no preamble.
+Format strictly as:
+{
+  "topic": "Suggested trending topic title",
+  "targetLocation": "One of: India, United States, United Kingdom, Canada, Australia, Global",
+  "language": "One of: English, Hindi, Spanish, French, German, Portuguese, Italian",
+  "audience": "Brief target audience description tailored specifically to this topic and location (e.g. food enthusiasts looking for traditional dairy options in India)"
+}`;
+
+  const prompt = `Select a random trending topic in a popular vertical (e.g., tech, AI, productivity, business, health, cooking like buttermilk recipes, marketing, wellness).
+Assign the most appropriate target audience location, article language, and a descriptive target audience. Make sure the audience description explicitly mentions the target location if relevant.`;
+
+  try {
+    const { text, model } = await smartComplete('openai', system, prompt, { maxTokens: 400 });
+    const result = localExtractJson(text);
+    if (result.topic && result.targetLocation && result.language && result.audience) {
+      return res.json({ ...result, model });
+    }
+  } catch (err) {
+    // fall through to mock fallback
+  }
+
+  // Fallback to a curated list of trending topics
+  const topics = [
+    {
+      topic: "Exploring the Health Benefits of Buttermilk",
+      targetLocation: "India",
+      language: "English",
+      audience: "Health-conscious individuals and traditional food lovers in India"
+    },
+    {
+      topic: "Creative Recipes Using Buttermilk",
+      targetLocation: "United States",
+      language: "English",
+      audience: "Home cooks and baking enthusiasts in the USA"
+    },
+    {
+      topic: "The Future of Remote Work and Hybrid Teams",
+      targetLocation: "Global",
+      language: "English",
+      audience: "HR managers, team leaders, and remote knowledge workers globally"
+    },
+    {
+      topic: "How Artificial Intelligence is Changing Everyday Education",
+      targetLocation: "United Kingdom",
+      language: "English",
+      audience: "Teachers, educational administrators, and students in the UK"
+    },
+    {
+      topic: "A Beginner's Guide to Sustainable Kitchen Practices",
+      targetLocation: "Canada",
+      language: "English",
+      audience: "Environmentally conscious citizens and home cooks in Canada"
+    }
+  ];
+
+  const randomPick = topics[Math.floor(Math.random() * topics.length)];
+  res.json({ ...randomPick, model: 'mock-fallback' });
+});
+
+// @desc   Extract text from uploaded files (PDF, DOCX, TXT)
+// @route  POST /api/tools/extract-text
+// @access Private
+const extractTextFromFile = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    res.status(400);
+    throw new Error('No file uploaded');
+  }
+
+  const { originalname, buffer } = req.file;
+  const ext = originalname.split('.').pop().toLowerCase();
+
+  let text = '';
+
+  if (ext === 'txt' || ext === 'md' || ext === 'json') {
+    text = buffer.toString('utf8');
+  } else if (ext === 'pdf') {
+    try {
+      const data = await pdfParse(buffer);
+      text = data.text || '';
+    } catch (err) {
+      res.status(400);
+      throw new Error(`Failed to parse PDF file: ${err.message}`);
+    }
+  } else if (ext === 'docx') {
+    try {
+      const result = await mammoth.extractRawText({ buffer });
+      text = result.value || '';
+    } catch (err) {
+      res.status(400);
+      throw new Error(`Failed to parse Word document: ${err.message}`);
+    }
+  } else {
+    res.status(400);
+    throw new Error(`Unsupported file format: .${ext}. Please upload a .txt, .pdf, or .docx file.`);
+  }
+
+  res.json({ text: text.trim() });
+});
+
 module.exports = {
   humanizeText,
   aiDetect,
@@ -111,4 +231,7 @@ module.exports = {
   titleSuggestions,
   seoScore,
   rewriteInline,
+  autoPickTopic,
+  extractTextFromFile,
 };
+
