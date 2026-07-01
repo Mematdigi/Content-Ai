@@ -136,7 +136,7 @@ export default function History() {
             </Col>
           ))}
         </Row>
-      ) : items.length === 0 ? (
+      ) : !items || items.length === 0 ? (
         <div className="empty-state">
           <div className="icon"><i className="bi bi-journal-text" /></div>
           <p>No articles found. Try a different search or generate a new one.</p>
@@ -145,7 +145,7 @@ export default function History() {
       ) : (
         <>
           <Row className="g-3">
-            {items.map((a, index) => {
+            {(items || []).map((a, index) => {
               const hasImage = a.images && a.images.length > 0;
               const imageUrl = hasImage ? a.images[0].url : null;
               
