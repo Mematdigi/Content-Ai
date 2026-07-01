@@ -131,6 +131,8 @@ function mdToHtml(md = '') {
   }
   closeLists();
   let html = out.join('\n');
+  // Render inline image tags correctly
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<div class="article-body-image my-4"><img src="$2" alt="$1" class="img-fluid rounded-4 shadow-sm" style="width: 100%; max-height: 380px; object-fit: cover;" /><div class="text-muted small text-center mt-2"><i class="bi bi-camera me-1"></i> $1</div></div>');
   // inline emphasis
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
@@ -177,7 +179,11 @@ export default function ArticleView() {
     if (current?.content) setDraftContent(current.content);
   }, [current?.content]);
 
-  const html = useMemo(() => mdToHtml(current?.content || ''), [current?.content]);
+  const html = useMemo(() => {
+    const rawContent = current?.content || '';
+    const cleanContent = rawContent.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/gi, '').trim();
+    return mdToHtml(cleanContent);
+  }, [current?.content]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -246,11 +252,13 @@ export default function ArticleView() {
       blob = new Blob([plain], { type: 'text/plain' });
       ext = 'txt';
     } else if (fmt === 'html') {
-      const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${current.title || ''}</title></head><body>${mdToHtml(content)}</body></html>`;
+      const cleanHtmlContent = content.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/gi, '').trim();
+      const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${current.title || ''}</title></head><body>${mdToHtml(cleanHtmlContent)}</body></html>`;
       blob = new Blob([fullHtml], { type: 'text/html' });
       ext = 'html';
     } else if (fmt === 'pdf') {
-      const articleHtml = mdToHtml(content);
+      const cleanPdfContent = content.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/gi, '').trim();
+      const articleHtml = mdToHtml(cleanPdfContent);
       const iframe = document.createElement('iframe');
       iframe.style.position = 'fixed';
       iframe.style.right = '0';

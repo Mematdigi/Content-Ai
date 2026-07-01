@@ -206,16 +206,15 @@ Target length: ~${targetWordCount} words (preferably 1000 - 1100 words for optim
 
 MANDATORY outline layout sections that MUST be planned:
 - Title (H1 at the top)
-- Estimated Reading Time
-- Introduction (60-120 words)
-- Table of Contents (link list of sections)
+- Introduction (60-120 words written directly below the Title, explaining the topic briefly. Do NOT include a "## Introduction" heading).
 - H2 sections (with H3 where appropriate)
 - FAQ (exactly 5-6 question-answer slots)
 - Conclusion
 
 MANDATORY outline requirements:
 - Only one H1 on the page (the title at the very top).
-- At least 3 content-carrying H2 headings (excluding Introduction, Table of Contents, FAQ, Conclusion, About the Author, and Sources and References). Each of these 3 content-carrying H2 headings MUST incorporate the primary keyword "${primaryKeyword}" in exact match.
+- The introduction text (60-120 words explaining the topic briefly and clearly) must start immediately below the H1 Title. Do NOT create or include a "## Introduction" heading.
+- At least 3 content-carrying H2 headings (excluding FAQ and Conclusion). Each of these 3 content-carrying H2 headings MUST incorporate the primary keyword "${primaryKeyword}" in exact match.
 - At least 2 content-carrying H3 headings. Each of these 2 content-carrying H3 headings MUST incorporate the primary keyword "${primaryKeyword}" (or the main topic subject keyword "${primaryKeyword.split(' ').pop()}") naturally.
 - A bullet list under at least one heading.
 - Plan a slot for one related quote from a famous/expert person.
@@ -223,8 +222,8 @@ MANDATORY outline requirements:
 - Plan 2-3 image placement points spread across the article.
 - A dedicated FAQ section at the very end with exactly 5-6 distinct question-answer pairs directly related to the topic "${topic}" and the primary keyword "${primaryKeyword}".
 ${nicheRequirements}
-${authorName ? `- Include a final H2 section titled "About the Author" (for E-E-A-T credentials).` : '- Do NOT include an "About the Author" section.'}
-- Include a final H2 section titled "Sources and References" (citing Wikipedia, Google Scholar, industry blogs, or research reports).
+- Do NOT include an "About the Author" section.
+- Do NOT include a "Sources and References" section.
 ${insufficientData ? `- CRITICAL DATA WARNING: The Research Brief flagged INSUFFICIENT DATA for this time-sensitive query. Do NOT create outline headings that assume specific fixtures, match schedules, scores, or event details exist. Instead, limit the outline to: (1) a heading acknowledging that verified data is unavailable for the requested date, (2) general background if available, and (3) FAQ. Do NOT include headings for lineups, predictions, or match previews when no verified match data exists.` : ''}
 
 Research Brief Grounding (You must strictly base all outline headings, subheadings, comparison tables, and FAQ questions on these factual web references. Do NOT assume, invent, or hallucinate dates, locations, details, or timelines outside of these references. If any required table or comparison metric is not present in the Research Brief, do NOT include it in the outline headings or tables):
@@ -853,41 +852,89 @@ async function runPipeline(input, onProgress = () => {}) {
   if (input.includeImages) {
     const niche = classifyNiche(input.topic, input.primaryKeyword);
     const textNormalized = `${input.topic} ${input.primaryKeyword || ''}`.toLowerCase();
-    
-    let url = 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=600&auto=format&fit=crop';
-    let alt = 'Workspace typing';
-    let credit = 'Unsplash Stock';
 
+    const CATEGORY_IMAGES = {
+      sports_soccer: [
+        { url: 'https://images.unsplash.com/photo-1431324155629-1a6edd1dec8d?q=80&w=600&auto=format&fit=crop', alt: 'Soccer ball on field', credit: 'Unsplash Stock' },
+        { url: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=600&auto=format&fit=crop', alt: 'Sports arena stadium lights', credit: 'Unsplash Stock' },
+        { url: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=600&auto=format&fit=crop', alt: 'Athletes racing on track', credit: 'Unsplash Stock' }
+      ],
+      sports_cricket: [
+        { url: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?q=80&w=600&auto=format&fit=crop', alt: 'Cricket stadium and pitch', credit: 'Unsplash Stock' },
+        { url: 'https://images.unsplash.com/photo-1589487391730-58f20eb2c308?q=80&w=600&auto=format&fit=crop', alt: 'Cricket bat and ball', credit: 'Unsplash Stock' },
+        { url: 'https://images.unsplash.com/photo-1607734834834-d4d48587b0d8?q=80&w=600&auto=format&fit=crop', alt: 'Cricket player match', credit: 'Unsplash Stock' }
+      ],
+      sports_general: [
+        { url: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=600&auto=format&fit=crop', alt: 'Sports arena stadium lights', credit: 'Unsplash Stock' },
+        { url: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=600&auto=format&fit=crop', alt: 'Athletes racing on track', credit: 'Unsplash Stock' },
+        { url: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=600&auto=format&fit=crop', alt: 'Training workout session', credit: 'Unsplash Stock' }
+      ],
+      finance_payments: [
+        { url: 'https://images.unsplash.com/photo-1563013544-824ae1d704d3?q=80&w=600&auto=format&fit=crop', alt: 'Online payments and credit cards', credit: 'Unsplash Stock' },
+        { url: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?q=80&w=600&auto=format&fit=crop', alt: 'Financial consulting and calculations', credit: 'Unsplash Stock' },
+        { url: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?q=80&w=600&auto=format&fit=crop', alt: 'Growing money coins', credit: 'Unsplash Stock' }
+      ],
+      finance_general: [
+        { url: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=600&auto=format&fit=crop', alt: 'Financial trading chart dashboard', credit: 'Unsplash Stock' },
+        { url: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=600&auto=format&fit=crop', alt: 'Business financial planning session', credit: 'Unsplash Stock' },
+        { url: 'https://images.unsplash.com/photo-1559526324-52a170567e7c?q=80&w=600&auto=format&fit=crop', alt: 'Accounting calculations ledger', credit: 'Unsplash Stock' }
+      ],
+      tech_general: [
+        { url: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=600&auto=format&fit=crop', alt: 'Software coding on laptop', credit: 'Unsplash Stock' },
+        { url: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?q=80&w=600&auto=format&fit=crop', alt: 'Technology device screens', credit: 'Unsplash Stock' },
+        { url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop', alt: 'Electronic circuit logic board', credit: 'Unsplash Stock' }
+      ],
+      general: [
+        { url: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=600&auto=format&fit=crop', alt: 'Workspace typing', credit: 'Unsplash Stock' },
+        { url: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=600&auto=format&fit=crop', alt: 'Books reading and education', credit: 'Unsplash Stock' },
+        { url: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=600&auto=format&fit=crop', alt: 'Creative desk workspace', credit: 'Unsplash Stock' }
+      ]
+    };
+
+    let pool = CATEGORY_IMAGES.general;
     if (niche === 'sports') {
       if (textNormalized.includes('cricket')) {
-        url = 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?q=80&w=600&auto=format&fit=crop';
-        alt = 'Cricket stadium and pitch';
+        pool = CATEGORY_IMAGES.sports_cricket;
       } else if (textNormalized.includes('soccer') || textNormalized.includes('football') || textNormalized.includes('cup')) {
-        url = 'https://images.unsplash.com/photo-1431324155629-1a6edd1dec8d?q=80&w=600&auto=format&fit=crop';
-        alt = 'Soccer ball on field';
+        pool = CATEGORY_IMAGES.sports_soccer;
       } else {
-        url = 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=600&auto=format&fit=crop';
-        alt = 'Sports arena stadium lights';
+        pool = CATEGORY_IMAGES.sports_general;
       }
     } else if (niche === 'finance') {
       if (textNormalized.includes('payment') || textNormalized.includes('wise') || textNormalized.includes('money') || textNormalized.includes('card')) {
-        url = 'https://images.unsplash.com/photo-1563013544-824ae1d704d3?q=80&w=600&auto=format&fit=crop';
-        alt = 'Online payments and credit cards';
+        pool = CATEGORY_IMAGES.finance_payments;
       } else {
-        url = 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=600&auto=format&fit=crop';
-        alt = 'Financial trading chart dashboard';
+        pool = CATEGORY_IMAGES.finance_general;
       }
     } else {
       if (textNormalized.includes('code') || textNormalized.includes('tech') || textNormalized.includes('software')) {
-        url = 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=600&auto=format&fit=crop';
-        alt = 'Software coding on laptop';
+        pool = CATEGORY_IMAGES.tech_general;
       }
     }
-    
-    images.push({ url, alt, credit });
+
+    images = [...pool];
   }
 
-  const faqs = extractFaqsFromContent(humanized.content);
+  let cleanContent = humanized.content;
+
+  // Programmatically strip redundant "Estimated Reading Time" and "Introduction" headings
+  cleanContent = cleanContent.replace(/^(?:\*|#)*Estimated Reading Time:?\s*\d+\s*(?:minutes|mins)?(?:\*|#)*$/gim, '');
+  cleanContent = cleanContent.replace(/^##\s*(?:Introduction|Intro)\s*$/gim, '');
+  cleanContent = cleanContent.trim();
+
+  if (images.length > 0) {
+    let imgIndex = 1; // start replacing from index 1 (index 0 is reserved for top banner!)
+    cleanContent = cleanContent.replace(/!\[([^\]]*)\]\(([^)]*)\)/g, (match, altText, url) => {
+      if (url === '#' || url === '' || url.includes('placeholder')) {
+        const img = images[imgIndex % images.length];
+        imgIndex++;
+        return `![${altText || img.alt}](${img.url})`;
+      }
+      return match;
+    });
+  }
+
+  const faqs = extractFaqsFromContent(cleanContent);
   const jsonLd = buildJsonLdSchema({
     title: optimized.metaTitle || input.topic,
     description: optimized.metaDescription || '',
@@ -897,7 +944,7 @@ async function runPipeline(input, onProgress = () => {}) {
 
   return {
     outline: outline.outline,
-    content: `${humanized.content}\n\n${jsonLd}`,
+    content: `${cleanContent}\n\n${jsonLd}`,
     metaTitle: optimized.metaTitle,
     metaDescription: optimized.metaDescription,
     slug: optimized.slug,
@@ -948,20 +995,29 @@ function extractFaqsFromContent(content) {
     line = line.trim();
     if (!line) continue;
 
-    const qMatch = line.match(/^\d+\.\s*(?:\*\*)?(.*?)(?:\*\*)?$/);
-    if (qMatch) {
+    const lowerLine = line.toLowerCase();
+    if (line.startsWith('#') || lowerLine.startsWith('conclusion') || lowerLine.startsWith('sources') || lowerLine.startsWith('about the') || lowerLine.startsWith('wrapping up')) {
+      break;
+    }
+
+    const isNumbered = /^\d+\.\s+/.test(line);
+    const isBoldQuestion = /^\*\*(.*?)\*\*/.test(line) && line.includes('?');
+    const isRawQuestion = line.endsWith('?') && line.length < 150;
+
+    if (isNumbered || isBoldQuestion || isRawQuestion) {
       if (currentQuestion && currentAnswer.length > 0) {
         faqs.push({
           question: currentQuestion,
           answer: currentAnswer.join(' ').replace(/^[-*\s\+]+/, '').trim()
         });
       }
-      currentQuestion = qMatch[1].replace(/\*\*|:\s*/g, '').trim();
+      currentQuestion = line
+        .replace(/^\d+\.\s+/, '')
+        .replace(/\*\*/g, '')
+        .replace(/:\s*$/, '')
+        .trim();
       currentAnswer = [];
     } else if (currentQuestion) {
-      if (line.startsWith('#')) {
-        break;
-      }
       currentAnswer.push(line);
     }
   }
