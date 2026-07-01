@@ -259,7 +259,7 @@ export default function ArticleView() {
       iframe.style.height = '0';
       iframe.style.border = '0';
       document.body.appendChild(iframe);
-      
+
       const doc = iframe.contentDocument || iframe.contentWindow.document;
       doc.write(`
         <!DOCTYPE html>
@@ -588,9 +588,9 @@ export default function ArticleView() {
                     <article className="article-preview">
                       {current.images && current.images.length > 0 && (
                         <div className="article-banner mb-4 text-center">
-                          <img 
-                            src={current.images[0].url} 
-                            alt={current.images[0].alt || current.title} 
+                          <img
+                            src={current.images[0].url}
+                            alt={current.images[0].alt || current.title}
                             className="img-fluid rounded-4 shadow-sm"
                             style={{ width: '100%', maxHeight: '420px', objectFit: 'cover' }}
                           />
@@ -607,15 +607,33 @@ export default function ArticleView() {
                 </Tab.Pane>
 
                 <Tab.Pane eventKey="meta">
-                  <div className="mb-3">
-                    <h3 className="h6 text-muted">Meta title ({(current.metaTitle || '').length} chars)</h3>
-                    <div className="cf-card cf-card--inset">{current.metaTitle || '—'}</div>
-                  </div>
-                  <div>
-                    <h3 className="h6 text-muted">Meta description ({(current.metaDescription || '').length} chars)</h3>
-                    <div className="cf-card cf-card--inset">{current.metaDescription || '—'}</div>
-                  </div>
-                </Tab.Pane>
+                   <div className="mb-3">
+                     <h3 className="h6 text-muted">Meta title ({(current.metaTitle || '').length} chars)</h3>
+                     <div className="cf-card cf-card--inset">{current.metaTitle || '—'}</div>
+                   </div>
+                   <div className="mb-3">
+                     <h3 className="h6 text-muted">Meta description ({(current.metaDescription || '').length} chars)</h3>
+                     <div className="cf-card cf-card--inset">{current.metaDescription || '—'}</div>
+                   </div>
+                   <div>
+                     <h3 className="h6 text-muted">URL slug</h3>
+                     <div className="cf-card cf-card--inset d-flex justify-content-between align-items-center">
+                       <span>{current.slug || (current.metaTitle || current.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '—'}</span>
+                       <Button 
+                         variant="link" 
+                         className="p-0 text-decoration-none text-muted" 
+                         onClick={() => {
+                           const s = current.slug || (current.metaTitle || current.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                           navigator.clipboard.writeText(s);
+                           toast.success('Slug copied to clipboard!');
+                         }}
+                         style={{ fontSize: '0.85rem' }}
+                       >
+                         <i className="bi bi-clipboard me-1" /> Copy
+                       </Button>
+                     </div>
+                   </div>
+                 </Tab.Pane>
 
                 <Tab.Pane eventKey="seo">
                   <div className="d-flex flex-column gap-3">

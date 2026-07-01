@@ -234,7 +234,7 @@ export default function Dashboard() {
                         <div className="article-row__meta">
                           <span className="article-row__date">
                             <i className="bi bi-calendar3 me-1" />
-                            {new Date(a.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {a.createdAt ? new Date(a.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Just now'}
                           </span>
                           {a.wordCount !== undefined && a.wordCount !== null && (
                             <span className="article-row__words ms-3">

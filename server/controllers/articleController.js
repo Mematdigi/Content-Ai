@@ -173,6 +173,7 @@ const generateArticle = asyncHandler(async (req, res) => {
     title: topic,
     metaTitle: result.metaTitle,
     metaDescription: result.metaDescription,
+    slug: result.slug,
     content: result.content,
     primaryKeyword,
     secondaryKeywords,
@@ -250,7 +251,7 @@ const updateArticle = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Article not found');
   }
-  const allowed = ['title', 'content', 'metaTitle', 'metaDescription', 'status'];
+  const allowed = ['title', 'content', 'metaTitle', 'metaDescription', 'slug', 'status'];
   allowed.forEach((k) => {
     if (k in req.body) article[k] = req.body[k];
   });

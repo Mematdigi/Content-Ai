@@ -22,7 +22,7 @@ function getArticleSnippet(article) {
 
 export default function History() {
   const dispatch = useDispatch();
-  const { items, total } = useSelector((s) => s.articles);
+  const { items = [], total = 0 } = useSelector((s) => s.articles);
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('all');
   const [loading, setLoading] = useState(true);

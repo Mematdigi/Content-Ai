@@ -153,10 +153,10 @@ async function generateOutline({ topic, brief, targetWordCount, headingsCount, a
   if (niche === 'sports') {
     if (isMatchup) {
       nicheRequirements = `
-- At least 3 H2 headings: Ensure they incorporate the primary keyword "${primaryKeyword}" naturally. One H2 must cover the match preview/kickoff details. ${isHypothetical ? 'MANDATORY: Since this is a hypothetical/projected match (not officially scheduled yet), this heading must be framed as a "Potential Matchup Preview" or "Projected Clash Preview", rather than a confirmed kickoff details heading.' : 'One H2 must cover the match preview/kickoff details.'} Another H2 must focus on head-to-head history and stats.
-- At least 2 H3 headings: Dedicate these to exact matches of other important secondary keywords like predicted lineups or tactical key matchups.
+- At least 3 H2 headings: Each MUST incorporate the primary keyword "${primaryKeyword}" in exact match. One H2 must cover the match preview/kickoff details. ${isHypothetical ? 'MANDATORY: Since this is a hypothetical/projected match (not officially scheduled yet), this heading must be framed as a "Potential Matchup Preview" or "Projected Clash Preview", rather than a confirmed kickoff details heading.' : 'One H2 must cover the match preview/kickoff details.'} Another H2 must focus on head-to-head history and stats.
+- At least 2 H3 headings: Each MUST incorporate the primary keyword "${primaryKeyword}" in exact match. Focus on subtopics like predicted lineups or tactical key matchups.
 - Under at least one H2, include a structured comparison table comparing team stats (such as FIFA rankings or other verified metrics from the research brief). Do NOT include unverified stats like World Cup titles or head-to-head records if they are not explicitly present in the research brief.
-- Under at least one H2, include a custom visual comparison chart in HTML format (using <div class="custom-chart"> wrapper) comparing team metrics (such as win probability or recent form) ONLY if they are verified in the research brief. If win probabilities are not verified in the brief, do NOT include unverified percentages; instead, compare verified stats or recent performance metrics.
+- Under at least one H2, include a custom visual comparison chart in HTML format (using <div class="custom-chart"> wrapper) comparing team metrics (such as win probability or recent form) ONLY if they are verified in the research brief.
 - Include a bullet list under at least one H2 or H3.
 - Plan a slot for one relevant quote from a famous sports figure or analyst related to the matchup.
 - Plan 2-3 image placement points spread across the article.
@@ -165,8 +165,8 @@ async function generateOutline({ topic, brief, targetWordCount, headingsCount, a
       nicheRequirements = `
 - If the Research Brief does not contain actual factual details about group standings, schedules, or team news for the requested topic, you MUST limit the outline to exactly two H2 headings: '1. Tournament Schedule and Status' and '2. FAQ'. Do NOT include headings for lineups, standings, tactics, or predictions if they are unverified.
 - If the Research Brief does contain verified tournament/team facts, you may include:
-  - At least 3 H2 headings: Ensure they incorporate the primary keyword "${primaryKeyword}" naturally. Focus on tournament status, group standings, schedules, or general team news as present in the research brief. Do NOT assume or invent specific matchups if none are verified in the brief.
-  - At least 2 H3 headings: Focus on specific subtopics like key player updates, injury news, or tactical strategies from the research brief.
+  - At least 3 H2 headings: Each MUST incorporate the primary keyword "${primaryKeyword}" in exact match. Focus on tournament status, group standings, schedules, or general team news as present in the research brief. Do NOT assume or invent specific matchups if none are verified in the brief.
+  - At least 2 H3 headings: Each MUST incorporate the primary keyword "${primaryKeyword}" in exact match. Focus on specific subtopics like key player updates, injury news, or tactical strategies from the research brief.
 - Include a bullet list under at least one H2 or H3.
 - Plan a slot for one relevant quote from a famous sports figure or expert related to the topic.
 - Plan 2-3 image placement points spread across the article.
@@ -174,8 +174,8 @@ async function generateOutline({ topic, brief, targetWordCount, headingsCount, a
     }
   } else if (niche === 'finance') {
     nicheRequirements = `
-- At least 3 H2 headings: Ensure they incorporate the primary keyword "${primaryKeyword}" naturally. Dedicate at least two H2 headings specifically as questions targeting high-intent search queries.
-- At least 2 H3 headings: Dedicate these to exact matches of other important secondary keywords.
+- At least 3 H2 headings: Each MUST incorporate the primary keyword "${primaryKeyword}" in exact match. Dedicate at least two H2 headings specifically as questions targeting high-intent search queries.
+- At least 2 H3 headings: Each MUST incorporate the primary keyword "${primaryKeyword}" in exact match.
 - Under at least one H2, include a structured comparison table comparing platforms or requirements based on facts in the research brief.
 - Under at least one H2, include a custom visual bar chart in HTML format (using <div class="custom-chart"> wrapper) comparing platforms, costs, or speeds.
 - Include a bullet list under at least one H2 or H3.
@@ -184,8 +184,8 @@ async function generateOutline({ topic, brief, targetWordCount, headingsCount, a
 - Mark a dedicated FAQ section at the end with exactly 5-6 distinct question-answer pairs based on real-world search queries.`;
   } else {
     nicheRequirements = `
-- At least 3 H2 headings: Each must incorporate the primary keyword "${primaryKeyword}" naturally.
-- At least 2 H3 headings: Each must include the primary keyword or a close secondary keyword.
+- At least 3 H2 headings: Each MUST incorporate the primary keyword "${primaryKeyword}" in exact match.
+- At least 2 H3 headings: Each MUST incorporate the primary keyword "${primaryKeyword}" in exact match.
 - If the Research Brief contains specific numerical data or metrics, include a structured comparison table under one H2. If no verified numbers exist in the brief, use a qualitative comparison or skip the table entirely. NEVER plan a table with invented statistics.
 - Only include a custom visual bar chart (using <div class="custom-chart"> wrapper) if the Research Brief contains verified numerical comparisons. Do NOT plan a chart if you would need to invent the numbers.
 - Include a bullet list under at least one H2 or H3.
@@ -202,11 +202,29 @@ async function generateOutline({ topic, brief, targetWordCount, headingsCount, a
 Today's Date: ${currentDateStr} (Anchor relative terms like "tomorrow", "yesterday", or "next week" to this date).
 Primary Keyword: "${primaryKeyword}".
 Tone: ${tone}.
-Target length: ~${targetWordCount} words.
+Target length: ~${targetWordCount} words (preferably 1000 - 1100 words for optimal skyscraper formatting).
 
-MANDATORY outline requirements:${nicheRequirements}
+MANDATORY outline layout sections that MUST be planned:
+- Title (H1 at the top)
+- Estimated Reading Time
+- Introduction (60-120 words)
+- Table of Contents (link list of sections)
+- H2 sections (with H3 where appropriate)
+- FAQ (exactly 5-6 question-answer slots)
+- Conclusion
+
+MANDATORY outline requirements:
+- Only one H1 on the page (the title at the very top).
+- At least 3 content-carrying H2 headings (excluding Introduction, Table of Contents, FAQ, Conclusion, About the Author, and Sources and References). Each of these 3 content-carrying H2 headings MUST incorporate the primary keyword "${primaryKeyword}" in exact match.
+- At least 2 content-carrying H3 headings. Each of these 2 content-carrying H3 headings MUST incorporate the primary keyword "${primaryKeyword}" (or the main topic subject keyword "${primaryKeyword.split(' ').pop()}") naturally.
+- A bullet list under at least one heading.
+- Plan a slot for one related quote from a famous/expert person.
+- A related comparison table based on facts in the brief.
+- Plan 2-3 image placement points spread across the article.
+- A dedicated FAQ section at the very end with exactly 5-6 distinct question-answer pairs directly related to the topic "${topic}" and the primary keyword "${primaryKeyword}".
+${nicheRequirements}
 ${authorName ? `- Include a final H2 section titled "About the Author" (for E-E-A-T credentials).` : '- Do NOT include an "About the Author" section.'}
-- Include a final H2 section titled "Sources and References".
+- Include a final H2 section titled "Sources and References" (citing Wikipedia, Google Scholar, industry blogs, or research reports).
 ${insufficientData ? `- CRITICAL DATA WARNING: The Research Brief flagged INSUFFICIENT DATA for this time-sensitive query. Do NOT create outline headings that assume specific fixtures, match schedules, scores, or event details exist. Instead, limit the outline to: (1) a heading acknowledging that verified data is unavailable for the requested date, (2) general background if available, and (3) FAQ. Do NOT include headings for lineups, predictions, or match previews when no verified match data exists.` : ''}
 
 Research Brief Grounding (You must strictly base all outline headings, subheadings, comparison tables, and FAQ questions on these factual web references. Do NOT assume, invent, or hallucinate dates, locations, details, or timelines outside of these references. If any required table or comparison metric is not present in the Research Brief, do NOT include it in the outline headings or tables):
@@ -421,15 +439,14 @@ Keep paragraphs short (1–3 sentences max) to make scanning effortless.`;
   }
 
   const currentDateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const system = `You write like the top SEO blogs: Ahrefs, Moz, Neil Patel, Search Engine Journal. Study their style:
+  const system = `You write highly engaging, human-like articles. Study and follow the writing style of this premium lifestyle blog article: https://flypped.com/lifestyle/benefits-of-buttermilk
 
 VOICE & TONE (this is the #1 priority):
-- Write like a knowledgeable friend explaining over coffee — not a professor giving a lecture.
-- Be direct and confident. State things plainly: "This works." "This doesn't." "Here's why."
-- Use "you" and "your" to talk directly to the reader.
-- Use contractions always: "don't", "isn't", "won't", "it's", "here's", "that's".
-- Add honest caveats when appropriate: "That said, this won't work for every site." / "Fair warning: this takes time."
-- Share a clear opinion when relevant: "Most people overcomplicate this." / "The short answer? It depends."
+- Warm, direct, natural, and human tone. Explain things clearly and simply as a human author would.
+- Do NOT use typical AI introductory/transition fillers.
+- Use simple words and phrases. Avoid complex jargon or unnatural, flowery language.
+- Use synonyms and semantic/related keywords naturally throughout the text instead of repeating the same keyword mechanically.
+- Use natural contractions always: "don't", "isn't", "won't", "it's", "here's", "that's".
 
 Target audience: ${audience || 'readers looking for clear, friendly, and practical help'}.
 Write in ${pointOfView || 'second'} person.
@@ -437,10 +454,16 @@ Today's Date: ${currentDateStr}.
 
 ARTICLE TEMPLATE:
 
-1. INTRODUCTION (60–120 words):
+1. TITLE (H1):
+   - Only one H1 (the title) at the very top of the page.
+
+1.2 ESTIMATED READING TIME:
+   - Below the H1 title, add "Estimated Reading Time: X minutes" (e.g. "Estimated Reading Time: 5 minutes").
+
+1.3 INTRODUCTION (60–120 words):
    - ${snippetIntroRule}
    - The primary keyword "${primaryKeyword}" MUST appear naturally within the first 100 words.
-   - Start with DATA, a bold claim, or the direct answer to the search query. Like Ahrefs does: "We pulled data from 400,000 websites..." or like Neil Patel: "90% of pages get zero traffic from Google."
+   - Explain the search intent immediately in the first paragraph.
    - NEVER start with any of these AI patterns:
      * "In this article/guide/post, you'll learn/explore/discover..."
      * "This article covers/discusses/examines..."
@@ -449,76 +472,74 @@ ARTICLE TEMPLATE:
      * "Understanding X can help you..."
      * Any sentence that describes the article instead of just delivering the content.
 
-2. SENTENCE RHYTHM (how Ahrefs/Moz actually write):
-   - Mix sentence lengths dramatically. Short sentence. Then a longer one that explains the concept with a bit more nuance and context. Then another short one.
-   - Some sentences are just 3-5 words: "That's the key." / "It works." / "Not always."
-   - Others run 25-30 words with natural clauses joined by "and", "but", "because".
-   - NEVER write 5 sentences in a row that are all the same length. That's the #1 AI detection signal.
-   - ${styleRules}
+1.5 TABLE OF CONTENTS:
+   - Include a short, bulleted Table of Contents right after the introduction linking to the H2 headings (e.g. * [Why Good CTR Matters](#why-good-ctr-matters)).
 
-3. PARAGRAPH STRUCTURE:
-   - 2–4 sentences per paragraph. 40–90 words.
-   - Some paragraphs are just 2 sentences. Others are 4. Vary it.
-   - Every paragraph should make ONE point. Not two, not three. Just one. Then move on.
+2. PARAGRAPH STRUCTURE:
+   - 2–4 sentences per paragraph. Keep paragraphs highly readable: 40–90 words, and exactly 2 to 4 lines.
+   - Every paragraph should make ONE point simply. No long walls of text.
+   - CRITICAL: If a section has a large amount of context or information to explain, do NOT write a large paragraph or dense block of text. Instead, break it down logically using subheadings (H3/H4) and explain the details with proper bullet points and short, readable paragraphs (40-90 words). The layout must feel clean, highly readable, and written by a human.
 
-4. HEADING STRUCTURE:
-   - Only ONE H1 (the title).
-   - At least 3 H2 headings with "${primaryKeyword}" naturally included.
-   - At least 2 H3 headings with the primary keyword or a secondary keyword.
-   - Use question-format H2s where natural (like Ahrefs: "What Is a Good CTR?" not "Good CTR Overview").
+3. HEADING STRUCTURE:
+   - At least 3 H2 headings. Each H2 heading MUST incorporate the primary keyword "${primaryKeyword}" in exact match.
+   - At least 2 H3 headings. Each H3 heading MUST incorporate the primary keyword "${primaryKeyword}" (or the main topic subject keyword "${primaryKeyword.split(' ').pop()}") naturally.
 
-5. KEYWORD TARGETING:
+4. KEYWORD TARGETING & DENSITY:
    - Primary keyword density: 0.5%–1%.
-   - Secondary keywords naturally in text and subheadings: ${(secondaryKeywords || []).join(', ')}.
-   - Use semantic variations and LSI keywords from the research brief.
+   - Put top level/primary keywords in exact match in headings and text.
+   - Use synonyms and semantic/related keywords naturally in the text: ${(secondaryKeywords || []).join(', ')}.
 
-6. ENGAGEMENT ELEMENTS:
-   - At least ONE bullet list in the article.
-   - ONE relevant quote from a real expert in the field. Format: > "Quote text." — Expert Name. Must be real, verifiable, and directly related to the topic. NOT a generic motivational quote.
-   - A data table ONLY if the research brief has verified numbers. If not, skip it entirely.
+5. ENGAGEMENT ELEMENTS:
+   - Include a bullet list in the article under at least one heading.
+   - ONE relevant quote from a famous/expert person. Format: > "Quote text." — Famous Person. Must be real, verifiable, and related to the topic.
+   - A related comparison table comparing platforms, features, or details based on facts in the brief. Make it similar to the curd-vs-buttermilk comparison table style.
 
-7. CHART DATA:
+6. CHART DATA:
    - ${chartRule} If no verified metrics exist in the brief, output NO chart.
 
-8. IMAGE PLACEHOLDERS:
+7. IMAGE PLACEHOLDERS:
    - Insert 2–3 image markers: <!-- IMAGE: [descriptive alt text] -->
    - Spread them across intro area, mid-article, and conclusion area.
 
-9. ENDING PARAGRAPH:
-   - At least 60 words. Include "${primaryKeyword}" naturally.
-   - End with a clear next step or actionable takeaway — not a vague summary.
+8. ENDING PARAGRAPH:
+   - At least 60 words.
+   - Must incorporate the primary/main keyword "${primaryKeyword}" naturally.
+   - End with a clear next step or actionable takeaway.
 
-10. FAQ SECTION:
-   - 5–6 question-answer pairs targeting high-intent searches for "${primaryKeyword}".
-   - Each answer: under 50 words. Direct and specific.
+9. FAQ SECTION:
+   - exactly 5–6 question-answer pairs targeting queries related to "${primaryKeyword}".
+   - Each answer: strictly 20–40 words. Keep it short, concise, and direct (not too long).
 
-11. SOURCES & REFERENCES:
-   - ${authorRule}
-   - End with "Sources and References". ${contentMode === 'knowledge' ? 'List real references: Google Scholar, Wikipedia, industry blogs, research reports, official sites (NASA, WHO, etc.). Do NOT write "Information not yet officially confirmed" for evergreen topics.' : 'List sources from the research brief by title and domain.'}
+10. SOURCES & REFERENCES:
+    - ${authorRule}
+    - End with a "Sources and References" section listing real reference domains used in the brief (e.g., Google Scholar, Wikipedia, industry blogs, and research reports). Do NOT invent new references.
 
 BANNED PHRASES (never use these — they are AI fingerprints):
 "delve", "furthermore", "moreover", "in conclusion", "testament to", "it is important to note",
 "it's essential to", "it's crucial to", "landscape", "paradigm", "realm", "interplay",
 "multifaceted", "the ever-evolving", "in today's world", "game changer", "navigating the",
 "as we adapt to", "gear up for", "poised to", "at the end of the day", "the bottom line is",
-"understanding these changes can help you", "plays a crucial role", "it goes without saying".
+"understanding these changes can help you", "plays a crucial role", "it goes without saying",
+"in today's digital world", "in today's fast-paced world", "dive into", "delve into", "unlock",
+"harness", "elevate", "revolutionize", "seamlessly", "robust", "cutting-edge", "consequently",
+"whether you're", "imagine", "let's explore", "circle your calendars", "let's break down".
 
-12. ACCURACY & FACT-CHECKING:
-   - ${accuracyRules}
+11. ACCURACY & FACT-CHECKING:
+    - ${accuracyRules}
 
-13. TIME-SENSITIVE CONTENT RULE:
-   - If the Research Brief contains a "DATA SUFFICIENCY WARNING" or the user asks about schedules/fixtures for a specific date and the brief lacks verified fixture data, do NOT invent placeholder matches. State that no confirmed schedule was found.
-   - NEVER generate fictional team names, placeholder fixture lists, or hypothetical scores.
+12. TIME-SENSITIVE CONTENT RULE:
+    - If the Research Brief contains a "DATA SUFFICIENCY WARNING" or the user asks about schedules/fixtures for a specific date and the brief lacks verified fixture data, do NOT invent placeholder matches. State that no confirmed schedule was found.
+    - NEVER generate fictional team names, placeholder fixture lists, or hypothetical scores.
 
-14. FUTURE EVENT RULE:
-   - If the Research Brief contains a "FUTURE EVENT WARNING" and sources lack confirmed details for the specific season/year:
-     a) Do NOT present schedules, venues, squads, results, or performance metrics as confirmed.
-     b) Do NOT copy data from previous seasons as current-year data.
-     c) State that official details have not been announced yet where data is missing.
-     d) You MAY write about history, format, expectations, and predictions CLEARLY LABELED as speculation.
-     e) For FAQ answers about future events with unknown answers, write "Official information has not been announced yet."
+13. FUTURE EVENT RULE:
+    - If the Research Brief contains a "FUTURE EVENT WARNING" and sources lack confirmed details for the specific season/year:
+      a) Do NOT present schedules, venues, squads, results, or performance metrics as confirmed.
+      b) Do NOT copy data from previous seasons as current-year data.
+      c) State that official details have not been announced yet where data is missing.
+      d) You MAY write about history, format, expectations, and predictions CLEARLY LABELED as speculation.
+      e) For FAQ answers about future events with unknown answers, write "Official information has not been announced yet."
 
-${predictionRule ? `15. TACTICAL ANALYSIS & PREDICTION:\n   - ${predictionRule}` : ''}
+${predictionRule ? `14. TACTICAL ANALYSIS & PREDICTION:\n   - ${predictionRule}` : ''}
 
 TOTAL WORD COUNT TARGET: ${targetWordCount} words (use skyscraper technique — cover the topic more thoroughly than competitors).
 
@@ -609,7 +630,7 @@ Write the full article now.`;
 
 async function optimizeForSEO({ content, primaryKeyword, secondaryKeywords, includeMeta, authorName }) {
   if (!includeMeta) {
-    return { content, metaTitle: '', metaDescription: '', model: 'skipped', durationMs: 0, status: 'ok' };
+    return { metaTitle: '', metaDescription: '', slug: '', model: 'skipped', durationMs: 0, status: 'ok' };
   }
 
   const system = `You are an SEO expert. Output ONLY a JSON object. No markdown tags, no notes.
@@ -617,57 +638,36 @@ Format strictly as:
 {
   "metaTitle": "Title containing primary keyword, strictly 50-60 characters",
   "metaDescription": "Description containing primary keyword naturally, strictly 150-160 characters",
-  "refinedContent": "The markdown article, optimized with primary/secondary keywords and having a valid JSON-LD schema block appended at the ABSOLUTE END of the document"
-}
+  "urlSlug": "Clean, short, lowercase, hyphenated URL slug containing the primary keyword naturally, strictly under 50 characters"
+}`;
 
-JSON-LD Schema Rules:
-- The JSON-LD must contain both an 'Article' and a 'FAQPage' context.
-- Use the author name "${authorName || 'Editorial Team'}".
-- The schema block must be placed at the VERY BOTTOM of the 'refinedContent', below all other text, headings, and tables.
-- Format the schema as:
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Article",
-      "headline": "<Title>",
-      "description": "<Meta Description>",
-      "author": { "@type": "${authorName ? 'Person' : 'Organization'}", "name": "${authorName || 'Editorial Team'}" }
-    },
-    {
-      "@type": "FAQPage",
-      "mainEntity": [ ... ]
-    }
-  ]
-}
-</script>`;
-
-  const prompt = `Article Content:
+  const prompt = `Article Content Snippet:
 ---
-${content}
+${content.slice(0, 4000)}
 ---
 
 Primary Keyword: ${primaryKeyword}
 Secondary Keywords: ${(secondaryKeywords || []).join(', ')}
 
-Create the meta tags and append the JSON-LD script at the absolute end of the refinedContent (below everything else).`;
+Create the SEO meta tags and url slug based on the article content.`;
 
   const t0 = Date.now();
   try {
-    const { text, model } = await smartComplete('gemini', system, prompt, { maxTokens: 4000 });
+    const { text, model } = await smartComplete('gemini', system, prompt, { maxTokens: 500 });
     const json = extractJson(text);
+    const slug = json.urlSlug || (json.metaTitle || primaryKeyword || 'article').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     return {
-      content: json.refinedContent || content,
       metaTitle: json.metaTitle || '',
       metaDescription: json.metaDescription || '',
+      slug,
       model,
       durationMs: Date.now() - t0,
       status: model === 'mock' ? 'fallback' : 'ok',
     };
   } catch (err) {
     const meta = extractFallbackMeta(content, primaryKeyword);
-    return { content, ...meta, model: 'mock', durationMs: Date.now() - t0, status: 'fallback' };
+    const slug = (meta.metaTitle || primaryKeyword || 'article').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    return { ...meta, slug, model: 'mock', durationMs: Date.now() - t0, status: 'fallback' };
   }
 }
 
@@ -716,35 +716,48 @@ async function humanizePass(content, topic, primaryKeyword) {
   }
 
   const currentDateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const system = `Rewrite the article below to match the writing style of Ahrefs, Moz, and Neil Patel blogs.
+  const system = `You are a senior journalist rewriting the article below to sound highly human-written, engaging, and polished. Study and follow the writing style of this lifestyle blog article: https://flypped.com/lifestyle/benefits-of-buttermilk
+ 
+ VOICE & TONE (this is the #1 priority):
+ - Warm, direct, natural, and human tone. Explain things clearly and simply as a human author would.
+ - Do NOT use typical AI introductory/transition fillers.
+ - Use simple words and phrases. Avoid complex jargon or unnatural, flowery language.
+ - Use synonyms and semantic/related keywords naturally throughout the text instead of repeating the same keyword mechanically.
+ - Use natural contractions always: "don't", "isn't", "won't", "it's", "here's", "that's".
 
-WHAT THAT STYLE SOUNDS LIKE:
-- Confident and direct: "This works." "Here's why." "Most people get this wrong."
-- Uses contractions everywhere: "don't", "isn't", "here's", "it's", "that's", "won't"
-- Mixes sentence lengths dramatically: "Short point." Then a longer sentence that adds context with a natural "and" or "but" joining two thoughts. Then short again.
-- Starts sentences with "But", "And", "So", "Now", "Still" sometimes — like real speech.
-- Adds honest caveats: "One catch:", "That said,", "One caveat:", "This won't work for everyone."
-- Uses "you" and "your" to talk directly to the reader.
-- Explains complex ideas with simple comparisons: "Think of PageRank like a voting system."
-- Stays specific — uses numbers, names, and examples instead of vague statements.
+ STRICT WRITING RULES:
+ 1. Avoid AI Clichés:
+    - Do NOT use phrases like: "In today's digital world", "In today's fast-paced world", "Dive into", "Delve into", "Unlock", "Harness", "Elevate", "Revolutionize", "It is important to note", "Seamlessly", "Robust", "Cutting-edge", "Furthermore", "Moreover", "Consequently", "Whether you're", "Imagine", "Let's explore", "circle your calendars", "let's break down".
+    - Avoid generic introductions or meta-commentary like "In this article, we will...".
+ 2. Paragraph Readability:
+    - Keep paragraphs short and easy to read. Each paragraph MUST be between 40 and 90 words, and exactly 2 to 4 lines. No single-sentence paragraphs, and no huge walls of text.
+    - CRITICAL: If a paragraph or section has a large amount of details or context to explain, do NOT write it as a single block. Break it down logically using subheadings (H3/H4) and describe details using clean bullet points and short paragraphs to keep the text natural and readable like human writing.
+ 3. Heading Structure:
+    - Ensure there is only one H1 title.
+    - Ensure H2 and H3 headings include the primary keyword "${primaryKeyword}" in exact match.
+ 4. Engagement & Elements:
+    - Preserve all comparison tables, quotes, bullet lists, and image placeholders.
+ 5. Ending Paragraph:
+    - Must be at least 60 words, including the primary keyword "${primaryKeyword}" naturally.
+ 6. FAQ Section:
+    - Ensure there are 5-6 FAQs, with answers strictly 20–40 words long (short and concise).
+ 7. Reading Time:
+    - Ensure there is an "Estimated Reading Time: X minutes" block below the H1 title.
+ 8. Formatting & Readability:
+    - Remove every sentence that sounds AI-generated.
+    - Replace generic advice with specific examples.
+    - Improve transitions naturally.
+    - Do not shorten the article (skyscraper technique, target 1000 - 1100 words overall).
 
-WHAT TO REMOVE (AI patterns):
-- Any sentence starting with "In this article/guide, you'll learn/explore..."
-- Filler: "It's important to note", "It goes without saying", "In today's world"
-- Formal connectors: "furthermore", "moreover", "consequently", "additionally"
-- Inflated words ONLY when they aren't topic keywords: "utilize" → "use", "facilitate" → "help"
-- Passive constructions: "It should be noted that" → just state the fact directly.
-- Uniform sentence lengths — if 3+ sentences in a row are similar length, rewrite them to vary.
-
-${nicheGuidelines}
-
-PRESERVATION RULES (critical):
-- Keep ALL facts, numbers, data, and claims exactly as they are.
-- Preserve ALL: image placeholders (<!-- IMAGE: ... -->), blockquotes (> ...), markdown tables, HTML chart blocks (<div class="custom-chart">), FAQ sections, and headings.
-- Same structure, same sections, same order.
-- Today's Date: ${currentDateStr}. Preserve all dates, times, and proper nouns.
-
-Output clean markdown only. Do NOT start with "Here is the rewritten article" or any preamble.`;
+ ${nicheGuidelines}
+ 
+ PRESERVATION RULES (critical):
+ - Keep ALL facts, numbers, data, and claims exactly as they are.
+ - Preserve ALL: image placeholders (<!-- IMAGE: ... -->), blockquotes (> ...), markdown tables, HTML chart blocks (<div class="custom-chart">), FAQ sections, and headings.
+ - Same structure, same sections, same order.
+ - Today's Date: ${currentDateStr}. Preserve all dates, times, and proper nouns.
+ 
+ Output clean markdown only. Do NOT start with "Here is the rewritten article" or any preamble.`;
 
   try {
     const wordCount = local.text.trim().split(/\s+/).length;
@@ -822,18 +835,18 @@ async function runPipeline(input, onProgress = () => {}) {
   const written = await writeContent({ ...input, outline: outline.outline, insufficientData: input.insufficientData });
   steps.push({ step: 'writing', model: written.model, durationMs: written.durationMs, status: written.status });
 
-  onProgress({ step: 'seo', label: 'Optimizing for SEO and meta tags...' });
-  const optimized = await optimizeForSEO({
-    content: written.content,
-    primaryKeyword: input.primaryKeyword,
-    secondaryKeywords: input.secondaryKeywords,
-    includeMeta: input.includeMeta !== false,
-    authorName: input.authorName,
-  });
+  onProgress({ step: 'seo', label: 'Optimizing SEO and humanizing content...' });
+  const [optimized, humanized] = await Promise.all([
+    optimizeForSEO({
+      content: written.content,
+      primaryKeyword: input.primaryKeyword,
+      secondaryKeywords: input.secondaryKeywords,
+      includeMeta: input.includeMeta !== false,
+      authorName: input.authorName,
+    }),
+    humanizePass(written.content, input.topic, input.primaryKeyword)
+  ]);
   steps.push({ step: 'seo', model: optimized.model, durationMs: optimized.durationMs, status: optimized.status });
-
-  onProgress({ step: 'humanize', label: 'Humanizing for low AI-detection score...' });
-  const humanized = await humanizePass(optimized.content, input.topic, input.primaryKeyword);
   steps.push({ step: 'humanize', model: humanized.model, durationMs: humanized.durationMs, status: humanized.status });
 
   let images = [];
@@ -874,11 +887,20 @@ async function runPipeline(input, onProgress = () => {}) {
     images.push({ url, alt, credit });
   }
 
+  const faqs = extractFaqsFromContent(humanized.content);
+  const jsonLd = buildJsonLdSchema({
+    title: optimized.metaTitle || input.topic,
+    description: optimized.metaDescription || '',
+    authorName: input.authorName,
+    faqs
+  });
+
   return {
     outline: outline.outline,
-    content: humanized.content,
+    content: `${humanized.content}\n\n${jsonLd}`,
     metaTitle: optimized.metaTitle,
     metaDescription: optimized.metaDescription,
+    slug: optimized.slug,
     aiScoreBefore: humanized.aiScoreBefore,
     aiScoreAfter: humanized.aiScoreAfter,
     pipelineSteps: steps,
@@ -911,6 +933,80 @@ function extractFallbackMeta(content, primaryKeyword) {
     metaTitle: firstHeading.slice(0, 60),
     metaDescription: firstPara.replace(/\s+/g, ' ').slice(0, 160),
   };
+}
+
+function extractFaqsFromContent(content) {
+  const faqs = [];
+  const faqSection = content.split(/##\s*FAQ/i)[1];
+  if (!faqSection) return faqs;
+
+  const lines = faqSection.split('\n');
+  let currentQuestion = null;
+  let currentAnswer = [];
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) continue;
+
+    const qMatch = line.match(/^\d+\.\s*(?:\*\*)?(.*?)(?:\*\*)?$/);
+    if (qMatch) {
+      if (currentQuestion && currentAnswer.length > 0) {
+        faqs.push({
+          question: currentQuestion,
+          answer: currentAnswer.join(' ').replace(/^[-*\s\+]+/, '').trim()
+        });
+      }
+      currentQuestion = qMatch[1].replace(/\*\*|:\s*/g, '').trim();
+      currentAnswer = [];
+    } else if (currentQuestion) {
+      if (line.startsWith('#')) {
+        break;
+      }
+      currentAnswer.push(line);
+    }
+  }
+
+  if (currentQuestion && currentAnswer.length > 0) {
+    faqs.push({
+      question: currentQuestion,
+      answer: currentAnswer.join(' ').replace(/^[-*\s\+]+/, '').trim()
+    });
+  }
+
+  return faqs;
+}
+
+function buildJsonLdSchema({ title, description, authorName, faqs }) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": title,
+        "description": description,
+        "author": {
+          "@type": authorName ? "Person" : "Organization",
+          "name": authorName || "Editorial Team"
+        }
+      }
+    ]
+  };
+
+  if (faqs && faqs.length > 0) {
+    schema["@graph"].push({
+      "@type": "FAQPage",
+      "mainEntity": faqs.map(f => ({
+        "@type": "Question",
+        "name": f.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": f.answer
+        }
+      }))
+    });
+  }
+
+  return `<script type="application/ld+json">\n${JSON.stringify(schema, null, 2)}\n</script>`;
 }
 
 // ---- Mock fallbacks ------------------------------------------------------

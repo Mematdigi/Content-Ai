@@ -42,6 +42,7 @@ const articleSchema = new mongoose.Schema(
     title: { type: String, required: true },
     metaTitle: String,
     metaDescription: String,
+    slug: String,
     content: { type: String, required: true },
     outline: [{ heading: String, level: Number, summary: String }],
 

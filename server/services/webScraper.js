@@ -375,27 +375,26 @@ async function runDiverseSearches(topic, primaryKeyword, isNewsOrSports, tempora
   const allResults = [];
   const seenDomains = new Set();
 
-  let lastError = null;
-  for (const query of queries) {
-    try {
-      const results = await searchSerp(query, isNewsOrSports, isHighlyTimeSensitive);
-      for (const r of results) {
-        const domain = r.sourceUrl ? getDomain(r.sourceUrl) : getDomain(r.link);
-        if (!seenDomains.has(domain)) {
-          seenDomains.add(domain);
-          allResults.push(r);
-        }
-        if (allResults.length >= 15) break;
+  const searchPromises = queries.map(query =>
+    searchSerp(query, isNewsOrSports, isHighlyTimeSensitive)
+      .catch(err => {
+        console.warn(`[webScraper] Query search failed for "${query}": ${err.message}`);
+        return [];
+      })
+  );
+
+  const searchResponses = await Promise.all(searchPromises);
+
+  for (const results of searchResponses) {
+    for (const r of results) {
+      const domain = r.sourceUrl ? getDomain(r.sourceUrl) : getDomain(r.link);
+      if (!seenDomains.has(domain)) {
+        seenDomains.add(domain);
+        allResults.push(r);
       }
-    } catch (err) {
-      console.warn(`[webScraper] Query search failed: ${err.message}`);
-      lastError = err;
+      if (allResults.length >= 15) break;
     }
     if (allResults.length >= 15) break;
-  }
-
-  if (allResults.length === 0 && lastError) {
-    throw lastError;
   }
 
   return allResults;

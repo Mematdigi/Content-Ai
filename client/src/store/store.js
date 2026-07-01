@@ -9,6 +9,20 @@ export const store = configureStore({
     articles: articlesReducer,
     theme: themeReducer,
   },
+  devTools: {
+    actionSanitizer: (action) => {
+      if (action.type?.startsWith('auth/') && action.payload?.password) {
+        return {
+          ...action,
+          payload: {
+            ...action.payload,
+            password: '<<MASKED>>',
+          },
+        };
+      }
+      return action;
+    },
+  },
 });
 
 export default store;

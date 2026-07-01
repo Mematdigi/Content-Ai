@@ -30,10 +30,34 @@ const app = express();
 connectDB();
 
 // ---- Core middleware ----------------------------------------------------
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
+
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:5000',
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or same-origin)
+      if (!origin) return callback(null, true);
+      
+      const isAllowed = allowedOrigins.includes(origin) || 
+                        origin.startsWith('http://localhost') ||
+                        (process.env.NODE_ENV === 'production');
+      
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );

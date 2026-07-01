@@ -98,8 +98,8 @@ const articleSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(listArticlesThunk.fulfilled, (state, action) => {
-        state.items = action.payload.items;
-        state.total = action.payload.total;
+        state.items = action.payload?.items || [];
+        state.total = action.payload?.total || 0;
       })
       .addCase(getArticleThunk.fulfilled, (state, action) => {
         state.current = action.payload;

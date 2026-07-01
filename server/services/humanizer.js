@@ -81,6 +81,18 @@ const AI_PHRASE_REPLACEMENTS = [
   [/\bthe interplay between\b/gi, 'how'],
   [/\bmultifaceted\b/gi, 'complex'],
   [/\bgame[- ]changing\b/gi, 'major'],
+  // --- New Banned AI Phrases ---
+  [/\bdive into\b/gi, 'look at'],
+  [/\bunlock\b/gi, 'get'],
+  [/\bharness\b/gi, 'use'],
+  [/\belevate\b/gi, 'boost'],
+  [/\brevolutionize\b/gi, 'transform'],
+  [/\bseamlessly\b/gi, 'smoothly'],
+  [/\brobust\b/gi, 'strong'],
+  [/\bcutting-edge\b/gi, 'modern'],
+  [/\bconsequently,?\b/gi, 'so,'],
+  [/\bwhether you're\b/gi, "if you're"],
+  [/\bimagine\b/gi, 'picture this'],
 ];
 
 // Contractions — always SEO-safe, biggest single AI detection signal
