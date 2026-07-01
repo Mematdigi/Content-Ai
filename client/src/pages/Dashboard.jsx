@@ -164,7 +164,7 @@ export default function Dashboard() {
             </div>
             {chartData.length === 0 ? (
               <div className="empty-state">
-                <i className="bi bi-bar-chart" />
+                <div className="icon"><i className="bi bi-bar-chart" /></div>
                 <p>No data yet. Generate your first article to see analytics here.</p>
               </div>
             ) : (
@@ -260,7 +260,7 @@ export default function Dashboard() {
               </motion.div>
             ) : (
               <div className="empty-state">
-                <i className="bi bi-journal-text" />
+                <div className="icon"><i className="bi bi-journal-text" /></div>
                 <p>No articles yet.</p>
                 <Link to="/generate"><Button size="sm">Generate one</Button></Link>
               </div>

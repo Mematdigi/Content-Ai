@@ -119,9 +119,11 @@ function mdToHtml(md = '') {
       out.push(`<li>${escape(line.replace(/^\s*[-*+]\s+/, ''))}</li>`);
       continue;
     }
-    if (/^\s*\d+\.\s+/.test(line)) {
+    const olMatch = line.match(/^\s*(\d+)\.\s+/);
+    if (olMatch) {
+      const num = olMatch[1];
       if (!inOl) { closeLists(); out.push('<ol>'); inOl = true; }
-      out.push(`<li>${escape(line.replace(/^\s*\d+\.\s+/, ''))}</li>`);
+      out.push(`<li value="${num}">${escape(line.replace(/^\s*\d+\.\s+/, ''))}</li>`);
       continue;
     }
     closeLists();
@@ -190,15 +192,44 @@ export default function ArticleView() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm('Delete this article? This cannot be undone.')) return;
-    try {
-      await dispatch(deleteArticleThunk(id)).unwrap();
-      toast.success('Deleted.');
-      navigate('/history');
-    } catch {
-      toast.error('Delete failed.');
-    }
+  const handleDelete = () => {
+    toast((t) => (
+      <div className="d-flex align-items-center gap-2 flex-wrap">
+        <span className="small text-text me-1">Delete this article? This cannot be undone.</span>
+        <button
+          className="btn btn-sm py-1 px-2 border-0 fw-bold"
+          style={{ background: '#ef4444', color: '#fff', borderRadius: '6px', fontSize: '0.75rem' }}
+          onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              await dispatch(deleteArticleThunk(id)).unwrap();
+              toast.success('Article deleted successfully.');
+              navigate('/history');
+            } catch {
+              toast.error('Delete failed.');
+            }
+          }}
+        >
+          Delete
+        </button>
+        <button
+          className="btn btn-sm py-1 px-2 border-0 fw-bold"
+          style={{ background: 'var(--surface-alt)', color: 'var(--text)', borderRadius: '6px', fontSize: '0.75rem', border: '1px solid var(--border)' }}
+          onClick={() => toast.dismiss(t.id)}
+        >
+          Cancel
+        </button>
+      </div>
+    ), {
+      duration: 5000,
+      style: {
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: '12px',
+        color: 'var(--text)',
+        boxShadow: 'var(--shadow-lg)',
+      }
+    });
   };
 
   const handleExport = (fmt) => {
@@ -240,108 +271,167 @@ export default function ArticleView() {
               * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+                box-sizing: border-box;
+              }
+              @page {
+                size: auto;
+                margin: 0; /* Hides browser default header (title, date) and footer (URL, page numbers) */
               }
               body {
-                font-family: system-ui, -apple-system, sans-serif;
-                color: #1f2937;
-                line-height: 1.7;
-                padding: 2rem;
-                max-width: 800px;
-                margin: 0 auto;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                color: #2c3e50;
+                line-height: 1.6;
+                margin: 20mm 20mm 20mm 20mm; /* Clean document margins on all sides of every page */
+                font-size: 11pt;
+                background-color: #ffffff;
               }
               h1, h2, h3, h4, h5, h6 {
-                color: #111827;
-                margin-top: 1.5em;
-                margin-bottom: 0.5em;
+                color: #1a252f;
+                font-weight: 700;
+                margin-top: 24pt;
+                margin-bottom: 12pt;
+                line-height: 1.25;
               }
-              h1 { font-size: 2.25rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }
-              h2 { font-size: 1.75rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.3rem; }
-              h3 { font-size: 1.25rem; }
-              p { margin-bottom: 1em; }
-              a { color: #7c3aed; text-decoration: none; }
-              code { background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.9em; font-family: monospace; }
-              ul, ol { margin-bottom: 1.5rem; padding-left: 1.5rem; }
-              li { margin-bottom: 0.5rem; }
+              h1 {
+                font-size: 26pt;
+                border-bottom: 2px solid #eaedf0;
+                padding-bottom: 8pt;
+                margin-top: 0;
+                margin-bottom: 20pt;
+              }
+              h2 {
+                font-size: 18pt;
+                border-bottom: 1px solid #eaedf0;
+                padding-bottom: 6pt;
+                page-break-after: avoid;
+              }
+              h3 {
+                font-size: 13pt;
+                page-break-after: avoid;
+              }
+              p {
+                margin-top: 0;
+                margin-bottom: 12pt;
+                font-size: 11pt;
+                text-align: justify;
+              }
+              a {
+                color: #5b21b6;
+                text-decoration: underline;
+              }
+              ul, ol {
+                margin-top: 0;
+                margin-bottom: 14pt;
+                padding-left: 20pt;
+              }
+              li {
+                margin-bottom: 6pt;
+                line-height: 1.5;
+              }
+              blockquote {
+                border-left: 3.5pt solid #7c3aed;
+                margin: 14pt 0;
+                padding-left: 14pt;
+                color: #4b5563;
+                font-style: italic;
+                background-color: #fcfaff !important;
+                padding-top: 6pt;
+                padding-bottom: 6pt;
+                border-radius: 0 4pt 4pt 0;
+              }
+              code {
+                background: #f3f4f6 !important;
+                padding: 2pt 4pt;
+                border-radius: 3pt;
+                font-size: 9pt;
+                font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+              }
+              pre {
+                background: #f3f4f6 !important;
+                padding: 10pt;
+                border-radius: 6pt;
+                overflow-x: auto;
+                margin-bottom: 14pt;
+              }
               table {
                 width: 100%;
                 border-collapse: collapse;
-                margin: 1.5rem 0;
-                font-size: 0.9rem;
-                border: 1px solid #e5e7eb;
+                margin: 18pt 0;
+                font-size: 9.5pt;
+                border: 1px solid #e2e8f0;
+                page-break-inside: avoid;
               }
               th, td {
-                padding: 0.75rem 1rem;
-                border: 1px solid #e5e7eb;
+                padding: 8pt 10pt;
+                border: 1px solid #e2e8f0;
                 text-align: left;
                 vertical-align: middle;
               }
               th {
-                background: #f9fafb;
+                background-color: #f8fafc !important;
                 font-weight: 600;
+                color: #0f172a;
               }
               tr:nth-child(even) td {
-                background: #f9fafb;
+                background-color: #f8fafc !important;
               }
               .table-responsive {
                 width: 100%;
-                overflow-x: auto;
               }
               .custom-chart {
-                background: #f9fafb;
-                border: 1px solid #e5e7eb;
-                border-radius: 8px;
-                padding: 1.25rem;
-                margin: 1.5rem 0;
+                background-color: #f8fafc !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 8pt;
+                padding: 14pt;
+                margin: 18pt 0;
+                page-break-inside: avoid;
               }
               .custom-chart__title {
-                font-size: 0.95rem;
-                font-weight: 600;
-                color: #1f2937;
-                margin-bottom: 1rem !important;
+                font-size: 10pt;
+                font-weight: 700;
+                color: #0f172a;
+                margin-bottom: 10pt !important;
                 margin-top: 0 !important;
               }
               .chart-bar-row {
                 display: flex;
                 align-items: center;
-                gap: 1rem;
-                margin-bottom: 0.75rem;
+                gap: 10pt;
+                margin-bottom: 8pt;
               }
               .chart-label {
-                width: 95px;
-                font-size: 0.85rem;
-                font-weight: 500;
-                color: #1f2937;
+                width: 90pt;
+                font-size: 8.5pt;
+                font-weight: 600;
+                color: #334155;
                 flex-shrink: 0;
               }
               .chart-bar-container {
                 flex: 1;
-                background: #ffffff;
-                height: 24px;
-                border-radius: 6px;
+                background-color: #e2e8f0 !important;
+                height: 18pt;
+                border-radius: 4pt;
                 overflow: hidden;
-                border: 1px solid #e5e7eb;
+                border: 1px solid #cbd5e1 !important;
               }
               .chart-bar {
                 height: 100%;
                 display: flex;
                 align-items: center;
-                padding-left: 0.75rem;
-                font-size: 0.75rem;
-                font-weight: 600;
-                color: white;
-                border-radius: 4px 0 0 4px;
-              }
-              .bg-brand {
-                background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+                padding-left: 8pt;
+                font-size: 8pt;
+                font-weight: 700;
+                color: #ffffff !important;
+                border-radius: 3pt 0 0 3pt;
               }
               .bg-success {
-                background: #10b981;
+                background-color: #10b981 !important;
               }
               .bg-warning {
-                background: #f59e0b;
+                background-color: #f59e0b !important;
               }
               .bg-danger {
-                background: #ef4444;
+                background-color: #ef4444 !important;
               }
             </style>
           </head>

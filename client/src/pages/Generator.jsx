@@ -297,16 +297,14 @@ export default function Generator() {
                   return (
                     <div
                       key={step.id}
-                      className={`pipeline__step ${isDone ? 'is-done' : ''} ${isRunning ? 'is-running' : ''} mb-2`}
+                      className={`pipeline__step ${isDone ? 'is-done' : ''} ${isRunning ? 'is-running' : ''}`}
                     >
-                      <div className="pipeline__icon"><i className={`bi ${step.icon}`} /></div>
-                      <div className="pipeline__body flex-grow-1">
-                        <div className="pipeline__label">{step.label}</div>
-                        <div className="pipeline__status small text-muted">
-                          {isDone ? 'Complete' : isRunning ? 'Processing…' : 'Queued'}
-                        </div>
+                      <div className="icon"><i className={`bi ${step.icon}`} /></div>
+                      <div className="label">{step.label}</div>
+                      <div className="meta">
+                        {isDone ? 'Complete' : isRunning ? 'Processing…' : 'Queued'}
                       </div>
-                      {isDone && <i className="bi bi-check-circle-fill text-success" />}
+                      {isDone && <i className="bi bi-check-circle-fill text-success ms-auto" />}
                     </div>
                   );
                 })}

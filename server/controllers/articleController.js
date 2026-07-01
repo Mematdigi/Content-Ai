@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const Article = require('../models/Article');
+const User = require('../models/User');
 const { runPipeline } = require('../services/aiPipeline');
 const { fetchResearchBrief } = require('../services/webScraper');
 const { scoreArticle } = require('../services/seoScorer');
@@ -197,8 +198,11 @@ const generateArticle = asyncHandler(async (req, res) => {
   });
 
   // Update plan usage
-  req.user.wordsUsed += wordCount;
-  await req.user.save();
+  // Update plan usage atomically to prevent Mongoose VersionError / validation conflicts
+  await User.updateOne(
+    { _id: req.user._id },
+    { $inc: { wordsUsed: wordCount } }
+  );
 
   res.status(201).json({ article });
 });

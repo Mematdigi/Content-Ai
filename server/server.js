@@ -68,6 +68,20 @@ app.use('/api/articles', aiLimiter, articleRoutes);
 app.use('/api/tools', aiLimiter, toolsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
+// ---- Serve static assets in production -----------------------------------
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path');
+  const clientBuildPath = path.join(__dirname, '../client/dist');
+  app.use(express.static(clientBuildPath));
+
+  app.get('*', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+  });
+}
+
 // ---- Error handling -----------------------------------------------------
 app.use(notFound);
 app.use(errorHandler);

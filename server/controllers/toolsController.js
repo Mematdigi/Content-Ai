@@ -1,5 +1,5 @@
 const asyncHandler = require('express-async-handler');
-const pdfParse = require('pdf-parse');
+const { PDFParse } = require('pdf-parse');
 const mammoth = require('mammoth');
 const { humanize, estimateAiScore } = require('../services/humanizer');
 const { scoreArticle } = require('../services/seoScorer');
@@ -202,8 +202,10 @@ const extractTextFromFile = asyncHandler(async (req, res) => {
     text = buffer.toString('utf8');
   } else if (ext === 'pdf') {
     try {
-      const data = await pdfParse(buffer);
+      const parser = new PDFParse({ data: buffer });
+      const data = await parser.getText();
       text = data.text || '';
+      await parser.destroy();
     } catch (err) {
       res.status(400);
       throw new Error(`Failed to parse PDF file: ${err.message}`);

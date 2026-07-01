@@ -7,9 +7,10 @@ import { logout } from '../../store/slices/authSlice';
 
 const TITLES = {
   '/dashboard': 'Dashboard',
-  '/generate': 'AI Article Generator',
+  '/generate': '',
+  '/calendar': 'Content Calendar',
   '/history': 'Article History',
-  '/tools': 'Tools',
+  // '/tools': 'Tools',
   '/settings': 'Settings',
 };
 
@@ -23,7 +24,7 @@ export default function Navbar() {
 
 
   const title =
-    TITLES[pathname] ||
+    pathname in TITLES ? TITLES[pathname] :
     (pathname.startsWith('/articles/') ? 'Article' : 'ContentForge');
 
   const initials = user?.name

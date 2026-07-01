@@ -13,6 +13,7 @@ import Generator from './pages/Generator';
 import WizardGenerator from './pages/WizardGenerator';
 import ArticleView from './pages/ArticleView';
 import History from './pages/History';
+import Calendar from './pages/Calendar';
 import Tools from './pages/Tools';
 import Settings from './pages/Settings';
 
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="/generate" element={<Generator />} />
             <Route path="/generate/wizard" element={<WizardGenerator />} />
             <Route path="/articles/:id" element={<ArticleView />} />
+            <Route path="/calendar" element={<Calendar />} />
             <Route path="/history" element={<History />} />
             <Route path="/tools" element={<Tools />} />
             <Route path="/settings" element={<Settings />} />

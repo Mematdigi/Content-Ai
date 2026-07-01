@@ -12,6 +12,8 @@ export default function MainLayout() {
 
   return (
     <div className={`app-shell ${collapsed ? 'is-collapsed' : ''}`}>
+      <div className="ambient-glow ambient-glow--1" />
+      <div className="ambient-glow ambient-glow--2" />
       <div
         className={`sidebar-backdrop ${mobileOpen ? 'is-visible' : ''}`}
         onClick={() => dispatch(closeMobileSidebar())}
@@ -19,7 +21,9 @@ export default function MainLayout() {
       <Sidebar />
       <div className="app-main">
         <Navbar />
-        <Outlet />
+        <div className="page">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

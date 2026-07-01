@@ -196,7 +196,9 @@ function getDomain(url) {
 // ---- Fetch Google News RSS for free real-time fallback ---------------------
 async function fetchGoogleNewsRss(query) {
   try {
-    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
+    // Strip YYYY-MM-DD date patterns that cause Google News RSS search to return 0 results
+    const cleanedQuery = query.replace(/\b\d{4}-\d{2}-\d{2}\b/g, '').trim();
+    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(cleanedQuery)}&hl=en-US&gl=US&ceid=US:en`;
     const { data: xml } = await axios.get(url, {
       timeout: 8000,
       headers: {
@@ -224,7 +226,14 @@ async function fetchGoogleNewsRss(query) {
         title = title.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
         snippet = snippet.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 
-        results.push({ title, link, snippet });
+        // Extract the original source URL if present in the <source> tag
+        let sourceUrl = '';
+        const sourceMatch = itemContent.match(/<source\s+url="([^"]+)">/);
+        if (sourceMatch) {
+          sourceUrl = sourceMatch[1].trim();
+        }
+
+        results.push({ title, link, snippet, sourceUrl });
       }
       if (results.length >= 8) break;
     }
@@ -284,6 +293,20 @@ async function searchSerp(query, isNewsOrSports, isHighlyTimeSensitive = false) 
     return await makeSearch(null, null);
   } catch (err) {
     const errMsg = err.response?.data?.error || err.message;
+    const isQuotaOrAuthError = 
+      err.message?.includes('configured') ||
+      err.message?.toLowerCase().includes('quota') ||
+      err.message?.toLowerCase().includes('limit') ||
+      err.response?.status === 401 ||
+      err.response?.status === 403 ||
+      err.response?.status === 429 ||
+      (typeof errMsg === 'string' && (
+        errMsg.toLowerCase().includes('quota') ||
+        errMsg.toLowerCase().includes('limit') ||
+        errMsg.toLowerCase().includes('unauthorized') ||
+        errMsg.toLowerCase().includes('key')
+      ));
+
     console.warn(`[webScraper] Zenserp API search failed (${errMsg}). Trying Google News RSS fallback...`);
 
     try {
@@ -294,6 +317,12 @@ async function searchSerp(query, isNewsOrSports, isHighlyTimeSensitive = false) 
       }
     } catch (rssErr) {
       console.warn(`[webScraper] RSS fallback failed: ${rssErr.message}`);
+    }
+
+    // If RSS fallback failed (returned 0 results or threw) and it was a quota/limit/auth error,
+    // throw the original error so that the system handles it or reports it rather than returning mock results.
+    if (isQuotaOrAuthError) {
+      throw new Error(`Zenserp search failed (limit/quota/config issue) and RSS fallback retrieved no authentic results. Original error: ${errMsg}`);
     }
 
     // NEVER fall back to mock data for time-sensitive queries — returning
@@ -346,11 +375,12 @@ async function runDiverseSearches(topic, primaryKeyword, isNewsOrSports, tempora
   const allResults = [];
   const seenDomains = new Set();
 
+  let lastError = null;
   for (const query of queries) {
     try {
       const results = await searchSerp(query, isNewsOrSports, isHighlyTimeSensitive);
       for (const r of results) {
-        const domain = getDomain(r.link);
+        const domain = r.sourceUrl ? getDomain(r.sourceUrl) : getDomain(r.link);
         if (!seenDomains.has(domain)) {
           seenDomains.add(domain);
           allResults.push(r);
@@ -358,18 +388,21 @@ async function runDiverseSearches(topic, primaryKeyword, isNewsOrSports, tempora
         if (allResults.length >= 15) break;
       }
     } catch (err) {
-      if (err.message.includes('configured') || err.message.includes('SerpAPI error') || err.message.includes('401') || err.message.includes('quota') || query === queries[0]) {
-        throw err;
-      }
+      console.warn(`[webScraper] Query search failed: ${err.message}`);
+      lastError = err;
     }
     if (allResults.length >= 15) break;
+  }
+
+  if (allResults.length === 0 && lastError) {
+    throw lastError;
   }
 
   return allResults;
 }
 
 // ---- Fact extraction from scraped HTML ------------------------------------
-function extractCitableFacts(html, url, title) {
+function extractCitableFacts(html, url, title, isNewsOrSports = false) {
   const $ = cheerio.load(html);
   $('script, style, nav, footer, aside, .ad, .advertisement').remove();
 
@@ -400,6 +433,27 @@ function extractCitableFacts(html, url, title) {
         domain,
       });
       if (facts.length >= 3) break; // max 3 facts per source
+    }
+  }
+
+  // Strategy 3: sports and event key dates/venues extraction
+  if (isNewsOrSports) {
+    const sportsKeywords = /\b(stadium|arena|venue|kickoff|kick-off|lineup|line-up|roster|squad|referee|captain|injury|injuries|points|standings|versus|vs|match|game|clash|played at|held at|takes place|scheduled for)\b/i;
+    for (const sentence of sentences) {
+      const clean = sentence.trim();
+      if (clean.length < 20 || clean.length > 250) continue;
+
+      if (sportsKeywords.test(clean)) {
+        if (!facts.some(f => f.stat === clean)) {
+          facts.push({
+            stat: clean,
+            source: title || domain,
+            url,
+            domain,
+          });
+          if (facts.length >= 6) break; // Allow slightly more facts for live events
+        }
+      }
     }
   }
 
@@ -439,9 +493,26 @@ async function decodeGoogleNewsUrl(sourceUrl) {
         const $ = cheerio.load(response.data);
         const dataElement = $("c-wiz > div[jscontroller]").first();
         if (!dataElement.length) return null;
+
+        let geoArray = null;
+        const cwiz = $("c-wiz").first();
+        const datap = cwiz.attr("data-p");
+        if (datap) {
+          try {
+            const jsonStr = "[" + datap.substring(4);
+            const parsed = JSON.parse(jsonStr);
+            if (parsed[1]) {
+              geoArray = parsed[1];
+            }
+          } catch (e) {
+            console.warn(`[webScraper] Failed to parse dynamic geo array: ${e.message}`);
+          }
+        }
+
         return {
           signature: dataElement.attr("data-n-a-sg"),
           timestamp: dataElement.attr("data-n-a-ts"),
+          geoArray
         };
       } catch (err) {
         return null;
@@ -457,10 +528,15 @@ async function decodeGoogleNewsUrl(sourceUrl) {
     }
 
     const executeUrl = "https://news.google.com/_/DotsSplashUi/data/batchexecute";
-    const payload = [
-      "Fbv4je",
-      `["garturlreq",[["X","X",["X","X"],null,null,1,1,"US:en",null,1,null,null,null,null,null,0,1],"X","X",1,[1,1,1],1,1,null,0,0,null,0],"${base64Str}",${params.timestamp},"${params.signature}"]`,
-    ];
+    const geoArray = params.geoArray || [["X","X",["X","X"],null,null,1,1,"US:en",null,1,null,null,null,null,null,0,1],"X","X",1,[1,1,1],1,1,null,0,0,null,0];
+    const payloadStr = JSON.stringify([
+      "garturlreq",
+      geoArray,
+      base64Str,
+      params.timestamp,
+      params.signature
+    ]);
+    const payload = ["Fbv4je", payloadStr];
 
     const response = await axios.post(
       executeUrl,
@@ -485,7 +561,7 @@ async function decodeGoogleNewsUrl(sourceUrl) {
 }
 
 // ---- Page scraper ----------------------------------------------------------
-async function scrapePage(url) {
+async function scrapePage(url, isNewsOrSports = false) {
   if (url.includes('mock.')) {
     return getMockScrapedPage(url);
   }
@@ -515,7 +591,7 @@ async function scrapePage(url) {
     const bodyText = $('article, main, body').first().text().replace(/\s+/g, ' ').trim();
 
     // Extract citable facts from raw HTML
-    const citableFacts = extractCitableFacts(html, finalUrl, title);
+    const citableFacts = extractCitableFacts(html, finalUrl, title, isNewsOrSports);
 
     return {
       url: finalUrl,
@@ -826,7 +902,7 @@ async function fetchResearchBrief({
       link: url,
       snippet: 'User-provided custom reference URL.'
     }));
-    scraped = await Promise.all(realResults.map((r) => scrapePage(r.link)));
+    scraped = await Promise.all(realResults.map((r) => scrapePage(r.link, isNewsOrSports)));
 
     if (customDocText && customDocText.trim()) {
       scraped.push({
@@ -857,7 +933,7 @@ async function fetchResearchBrief({
       ? serpResults.filter(r => r.link && !r.link.includes('mock.'))
       : serpResults;
 
-    scraped = await Promise.all(realResults.slice(0, 10).map((r) => scrapePage(r.link)));
+    scraped = await Promise.all(realResults.slice(0, 10).map((r) => scrapePage(r.link, isNewsOrSports)));
   }
 
   // Count successfully scraped (non-error) pages
@@ -980,10 +1056,10 @@ async function fetchResearchBrief({
                                   snippetsText.includes('not scheduled') ||
                                   snippetsText.includes('hypothetical') ||
                                   snippetsText.includes('no matches scheduled');
-    const containsStadium = snippetsText.includes('stadium') || snippetsText.includes('arena') || snippetsText.includes('venue');
-    const containsKickoff = snippetsText.includes('kickoff') || snippetsText.includes('scheduled for') || snippetsText.includes('match on');
+    const containsStadium = snippetsText.includes('stadium') || snippetsText.includes('arena') || snippetsText.includes('venue') || snippetsText.includes('field') || snippetsText.includes('park');
+    const containsKickoff = snippetsText.includes('kickoff') || snippetsText.includes('kick-off') || snippetsText.includes('scheduled for') || snippetsText.includes('match on') || snippetsText.includes('game on') || snippetsText.includes('clash on') || snippetsText.includes('play on');
 
-    isHypothetical = hasNoMeetingScheduled || !(containsStadium && containsKickoff);
+    isHypothetical = hasNoMeetingScheduled || (successfulScrapes === 0 && !(containsStadium || containsKickoff));
   }
 
   return {

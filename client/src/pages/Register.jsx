@@ -41,28 +41,33 @@ export default function Register() {
 
   return (
     <div className="auth-shell">
-      <aside className="auth-shell__brand">
-        <div className="auth-shell__brand-inner">
-          <div className="auth-shell__logo">
-            <span className="logo-mark">CF</span>
-            <span>ContentForge AI</span>
+      <div className="auth-shell__left">
+        <div className="brand-block">
+          <div className="d-flex align-items-center gap-2">
+            <span className="logo-mark" style={{
+              width: 40, height: 40, borderRadius: 10,
+              background: 'rgba(255,255,255,0.2)', display: 'grid', placeItems: 'center',
+              fontWeight: 800, fontSize: '1.1rem',
+            }}>CF</span>
+            <strong style={{ fontSize: '1.2rem' }}>ContentForge AI</strong>
           </div>
-          <h1 className="auth-shell__headline">Start writing in seconds.</h1>
-          <p className="auth-shell__subtext">
-            Free plan includes 5,000 words per month. No credit card required.
-          </p>
+          <h2>Start writing in seconds.</h2>
+          <p>Free plan includes 5,000 words per month. No credit card required.</p>
           <ul className="feature-list">
-            <li><i className="bi bi-check2-circle" /> 5,000 free words/month</li>
-            <li><i className="bi bi-check2-circle" /> Multi-model AI pipeline</li>
-            <li><i className="bi bi-check2-circle" /> SEO + humanizer built-in</li>
-            <li><i className="bi bi-check2-circle" /> Export to MD, HTML, DOCX</li>
+            <li><i className="bi bi-check-lg" /> 5,000 free words/month</li>
+            <li><i className="bi bi-check-lg" /> Multi-model AI pipeline</li>
+            <li><i className="bi bi-check-lg" /> SEO + humanizer built-in</li>
+            <li><i className="bi bi-check-lg" /> Export to MD, HTML, DOCX</li>
           </ul>
         </div>
-      </aside>
+        <p style={{ opacity: 0.8, fontSize: '0.85rem', marginTop: '2rem' }}>
+          © {new Date().getFullYear()} ContentForge AI
+        </p>
+      </div>
 
-      <main className="auth-shell__form-wrap">
+      <div className="auth-shell__right">
         <div className="auth-shell__form">
-          <h2 className="mb-1">Create account</h2>
+          <h1 className="font-display mb-1">Create account</h1>
           <p className="text-muted mb-4">It only takes a minute.</p>
 
           {error && <Alert variant="danger" className="py-2">{error}</Alert>}
@@ -112,7 +117,7 @@ export default function Register() {
             Already have an account? <Link to="/login" className="text-brand">Sign in</Link>
           </p>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

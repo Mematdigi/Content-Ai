@@ -1,4 +1,7 @@
-import { Form, Row, Col } from 'react-bootstrap';
+import { useState } from 'react';
+import { Form, Row, Col, Button, Spinner } from 'react-bootstrap';
+import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 const TYPES_INFO = [
   { id: 'News', label: 'News Articles', icon: 'bi-newspaper' },
@@ -12,8 +15,53 @@ const TYPES_INFO = [
 ];
 
 export default function StepType({ form, set }) {
+  const [loading, setLoading] = useState(false);
   const selectedType = form.articleType || 'Blog post';
   const selectedMode = form.referenceMode || 'auto';
+  const customUrls = form.customUrls || [''];
+
+  const handleAddUrl = () => {
+    set('customUrls', [...customUrls, '']);
+  };
+
+  const handleUrlChange = (idx, val) => {
+    const next = [...customUrls];
+    next[idx] = val;
+    set('customUrls', next);
+  };
+
+  const handleRemoveUrl = (idx) => {
+    const next = customUrls.filter((_, i) => i !== idx);
+    set('customUrls', next.length > 0 ? next : ['']);
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const { data } = await api.post('/tools/extract-text', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const separator = form.customDocText ? '\n\n' : '';
+      const headerText = `[File: ${file.name}]\n`;
+      set('customDocText', `${form.customDocText}${separator}${headerText}${data.text}`);
+      toast.success(`Extracted text from ${file.name} successfully!`);
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to extract text from file.';
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+      e.target.value = '';
+    }
+  };
 
   return (
     <div>
@@ -121,6 +169,42 @@ export default function StepType({ form, set }) {
           background: var(--surface);
           border: 1px solid var(--border);
           color: var(--text-muted);
+        }
+
+        /* Custom Grounding Styles */
+        .custom-sources-panel {
+          border: 1px solid var(--border);
+          background: var(--surface);
+          border-radius: 12px;
+          padding: 1.5rem;
+          margin-top: 1.5rem;
+        }
+        .url-input-row {
+          display: flex;
+          gap: 0.5rem;
+          margin-bottom: 0.5rem;
+          align-items: center;
+        }
+        .upload-dashed-zone {
+          border: 2px dashed var(--border);
+          border-radius: 10px;
+          padding: 1.5rem;
+          text-align: center;
+          cursor: pointer;
+          background: var(--surface-alt);
+          transition: all 0.2s ease;
+        }
+        .upload-dashed-zone:hover {
+          border-color: var(--brand);
+          background: var(--brand-soft);
+        }
+        .extracted-text-area {
+          font-family: var(--font-mono, monospace);
+          font-size: 0.82rem;
+          background: var(--surface-alt);
+          border-color: var(--border);
+          color: var(--text);
+          resize: vertical;
         }
       ` }} />
 
@@ -320,6 +404,115 @@ export default function StepType({ form, set }) {
           </Col>
         </Row>
       </div>
+
+      {/* Custom Sources Panel inside Step 2 */}
+      {selectedMode === 'custom' && (
+        <div className="custom-sources-panel fade-in">
+          <h4 className="h6 fw-bold mb-3 d-flex align-items-center gap-2">
+            <i className="bi bi-sliders text-brand" /> Configure Grounding Data
+          </h4>
+
+          {/* URLs section */}
+          <div className="mb-4">
+            <Form.Label className="small fw-semibold mb-1">Competitor Website URLs</Form.Label>
+            <p className="text-muted small mb-2" style={{ fontSize: '0.75rem' }}>
+              Add specific URLs you want the AI to scrape and reference.
+            </p>
+            {customUrls.map((url, idx) => (
+              <div key={idx} className="url-input-row">
+                <Form.Control
+                  type="url"
+                  placeholder="https://example.com/competitor-page-url"
+                  value={url}
+                  onChange={(e) => handleUrlChange(idx, e.target.value)}
+                  size="sm"
+                />
+                <Button 
+                  variant="outline-danger" 
+                  size="sm"
+                  onClick={() => handleRemoveUrl(idx)}
+                  disabled={customUrls.length === 1 && !url}
+                  style={{ padding: '0.25rem 0.5rem' }}
+                >
+                  <i className="bi bi-trash" />
+                </Button>
+              </div>
+            ))}
+            <Button 
+              variant="outline-primary" 
+              size="sm" 
+              onClick={handleAddUrl}
+              className="mt-1 d-inline-flex align-items-center gap-1"
+            >
+              <i className="bi bi-plus-lg" /> Add URL
+            </Button>
+          </div>
+
+          <Row className="g-3">
+            {/* Upload Zone */}
+            <Col xs={12} md={5}>
+              <Form.Label className="small fw-semibold mb-1">Upload Grounding Document</Form.Label>
+              <p className="text-muted small mb-2" style={{ fontSize: '0.75rem' }}>
+                Upload PDF, DOCX, or TXT reference materials.
+              </p>
+              
+              <div 
+                className="upload-dashed-zone"
+                onClick={() => document.getElementById('grounding-file-input-step2').click()}
+              >
+                {loading ? (
+                  <div className="py-2">
+                    <Spinner animation="border" variant="primary" size="sm" className="mb-2" />
+                    <div className="small text-muted font-weight-bold">Extracting document text...</div>
+                  </div>
+                ) : (
+                  <div className="py-2">
+                    <i className="bi bi-cloud-arrow-up text-brand" style={{ fontSize: '1.8rem' }} />
+                    <div className="small fw-bold mt-1 text-dark">Click to browse file</div>
+                    <div className="text-muted" style={{ fontSize: '0.7rem' }}>PDF, DOCX, TXT (Max 10MB)</div>
+                  </div>
+                )}
+              </div>
+              <input
+                id="grounding-file-input-step2"
+                type="file"
+                accept=".txt,.md,.pdf,.docx"
+                onChange={handleFileUpload}
+                style={{ display: 'none' }}
+                disabled={loading}
+              />
+            </Col>
+
+            {/* Custom Content Textarea */}
+            <Col xs={12} md={7}>
+              <div className="d-flex align-items-center justify-content-between mb-1">
+                <Form.Label className="small fw-semibold mb-0">Manual Document Text / Grounding Content</Form.Label>
+                {form.customDocText && (
+                  <Button 
+                    variant="link" 
+                    className="p-0 text-danger small text-decoration-none"
+                    onClick={() => set('customDocText', '')}
+                  >
+                    Clear Text
+                  </Button>
+                )}
+              </div>
+              <p className="text-muted small mb-2" style={{ fontSize: '0.75rem' }}>
+                Extracted file contents appear here. You can also paste text from any document directly.
+              </p>
+              <Form.Control
+                as="textarea"
+                rows={5}
+                className="extracted-text-area"
+                value={form.customDocText || ''}
+                onChange={(e) => set('customDocText', e.target.value)}
+                placeholder="Paste your custom research, statistics, or documents here to ground the AI generation..."
+              />
+            </Col>
+          </Row>
+        </div>
+      )}
     </div>
   );
 }
+

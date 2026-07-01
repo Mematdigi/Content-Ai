@@ -62,6 +62,11 @@ const AI_PHRASE_REPLACEMENTS = [
   [/\bremarkable resilience\b/gi, 'strong staying power'],
   [/\bwith that being said,?\b/gi, 'that said,'],
   [/\bin light of (this|that|these)\b/gi, 'given $1'],
+  // --- Flagged repetitive AI-detector phrases ---
+  [/\blet's be real\b/gi, 'honestly'],
+  [/\bdon't sleep on\b/gi, "don't overlook"],
+  [/\bmakes sense, right\?\b/gi, ''],
+  [/\bfair warning:?\b/gi, 'just keep in mind'],
   // --- "In this article" meta-commentary patterns ---
   [/\bin this article,?\s*(you'll|you will|we will|we'll|we)\s*(explore|learn|discover|find|discuss|cover|examine|look at|dive into|break down)[^.]*\.\s*/gi, ''],
   [/\bin this (guide|post|piece|blog),?\s*(you'll|you will|we will|we'll|we)\s*(explore|learn|discover|find|discuss|cover|examine)[^.]*\.\s*/gi, ''],
@@ -111,7 +116,7 @@ const CONTRACTIONS = [
 const SENTENCE_STARTERS = [
   'Look, ', 'Here\'s the thing — ', 'But ', 'And ', 'Honestly, ',
   'The thing is, ', 'Now, ', 'So ', 'Still, ', 'That said, ',
-  'Fair warning: ', 'Worth knowing — ',
+  'Worth knowing — ',
 ];
 
 // --- Parenthetical asides for natural human texture ---
@@ -125,7 +130,7 @@ const PARENTHETICAL_ASIDES = [
 const RHETORICAL_QUESTIONS = [
   'Why does this matter?', 'Sound familiar?',
   'What does this mean in practice?', 'So what\'s the takeaway?',
-  'Makes sense, right?', 'See the pattern?', 'The catch?',
+  'See the pattern?', 'The catch?',
   'Why should you care?',
 ];
 

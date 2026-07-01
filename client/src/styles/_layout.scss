@@ -6,14 +6,59 @@
 
 .app-shell {
   display: grid;
-  grid-template-columns: $sidebar-width 1fr;
-  min-height: 100vh;
+  grid-template-columns: auto 1fr;
+  height: 100vh;
+  overflow: hidden;
   background: var(--bg);
   color: var(--text);
   transition: background 0.3s ease, color 0.3s ease;
 
   &.is-collapsed {
-    grid-template-columns: $sidebar-collapsed-width 1fr;
+    .sidebar {
+      width: $sidebar-collapsed-width;
+      min-width: $sidebar-collapsed-width;
+      max-width: $sidebar-collapsed-width;
+      align-items: center;
+
+      &__brand {
+        padding: 1.25rem 0.5rem;
+        justify-content: center;
+        span:not(.logo-mark) {
+          display: none;
+        }
+      }
+
+      &__section-label {
+        display: none;
+      }
+
+      &__link {
+        justify-content: center;
+        padding: 0.6rem;
+        width: 42px;
+        height: 42px;
+        margin: 0.25rem auto;
+
+        span {
+          display: none;
+        }
+
+        i {
+          font-size: 1.15rem;
+          margin: 0;
+          width: auto;
+        }
+      }
+
+      &__footer {
+        padding: 1rem 0.5rem;
+        text-align: center;
+
+        div {
+          display: none;
+        }
+      }
+    }
   }
 
   @media (max-width: 768px) {
@@ -26,9 +71,16 @@
   background: var(--surface);
   border-right: 1px solid var(--border);
   height: 100vh;
+  width: $sidebar-width;
+  min-width: $sidebar-width;
+  max-width: $sidebar-width;
+  transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+              min-width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+              max-width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
   position: sticky;
   top: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   @include scrollbar;
@@ -56,6 +108,9 @@
     font-weight: 700;
     font-size: 1.15rem;
     color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    transition: padding 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 
     .logo-mark {
       width: 32px;
@@ -67,6 +122,7 @@
       color: #fff;
       font-weight: 800;
       box-shadow: $shadow-glow;
+      flex-shrink: 0;
     }
   }
 
@@ -80,6 +136,8 @@
       font-weight: 600;
       color: var(--text-muted);
       padding: 0.5rem 0.75rem;
+      white-space: nowrap;
+      overflow: hidden;
     }
   }
 
@@ -93,7 +151,9 @@
     text-decoration: none;
     font-size: 0.92rem;
     font-weight: 500;
-    transition: background 0.15s ease, color 0.15s ease;
+    transition: background 0.15s ease, color 0.15s ease, padding 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    white-space: nowrap;
+    overflow: hidden;
     @include focus-ring;
 
     i {
@@ -101,6 +161,7 @@
       width: 20px;
       text-align: center;
       color: var(--text-muted);
+      flex-shrink: 0;
     }
 
     &:hover {
@@ -111,6 +172,16 @@
     &.is-active {
       background: var(--brand-soft);
       color: var(--brand);
+      position: relative;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: var(--brand-gradient);
+        border-radius: 0 3px 3px 0;
+      }
 
       i {
         color: var(--brand);
@@ -122,8 +193,34 @@
     margin-top: auto;
     padding: 1rem 1.25rem;
     border-top: 1px solid var(--border);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    transition: padding 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    &-name {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 0.88rem;
+      margin-bottom: 0.1rem;
+    }
+
+    &-plan {
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--brand);
+      margin-bottom: 0.5rem;
+    }
+
+    &-usage {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.73rem;
+      color: var(--text-muted);
+    }
   }
 }
 
@@ -196,7 +293,8 @@
 .app-main {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .page {
@@ -363,5 +461,83 @@
   &__form {
     width: 100%;
     max-width: 420px;
+  }
+}
+
+// ---- Premium UI Glows, Glassmorphism, and Scrollbar ---------------------
+.ambient-glow {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(140px);
+  opacity: 0.14;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+
+  &--1 {
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.45) 0%, rgba(124, 58, 237, 0) 70%);
+    top: -120px;
+    left: 80px;
+  }
+
+  &--2 {
+    width: 550px;
+    height: 550px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, rgba(59, 130, 246, 0) 70%);
+    bottom: -150px;
+    right: -60px;
+  }
+}
+
+[data-theme='light'] {
+  .ambient-glow {
+    opacity: 0.05;
+    
+    &--1 {
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.25) 0%, rgba(124, 58, 237, 0) 70%);
+    }
+    &--2 {
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0) 70%);
+    }
+  }
+}
+
+// Global Scrollbar Customization
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+// Make sure layout pane content sits on top of glows
+.app-main, .sidebar {
+  position: relative;
+  z-index: 2;
+}
+
+// Sleek navbar blur + subtle gradient border
+.app-navbar {
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  background: var(--surface) !important;
+
+  &__title {
+    background: var(--brand-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    font-weight: 700;
   }
 }

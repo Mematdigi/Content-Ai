@@ -19,6 +19,9 @@ const themeSlice = createSlice({
     toggleSidebar(state) {
       state.sidebarCollapsed = !state.sidebarCollapsed;
     },
+    setSidebarCollapsed(state, action) {
+      state.sidebarCollapsed = action.payload;
+    },
     toggleMobileSidebar(state) {
       state.mobileSidebarOpen = !state.mobileSidebarOpen;
     },
@@ -28,6 +31,6 @@ const themeSlice = createSlice({
   },
 });
 
-export const { toggleTheme, setTheme, toggleSidebar, toggleMobileSidebar, closeMobileSidebar } =
+export const { toggleTheme, setTheme, toggleSidebar, setSidebarCollapsed, toggleMobileSidebar, closeMobileSidebar } =
   themeSlice.actions;
 export default themeSlice.reducer;

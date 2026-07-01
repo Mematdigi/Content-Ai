@@ -5,6 +5,21 @@ import { Row, Col, Form, Button, InputGroup } from 'react-bootstrap';
 import toast from 'react-hot-toast';
 import { listArticlesThunk, deleteArticleThunk } from '../store/slices/articleSlice';
 
+function getArticleSnippet(article) {
+  if (article.metaDescription && article.metaDescription.trim()) {
+    return article.metaDescription;
+  }
+  if (!article.content) {
+    return 'Click to open and read the full article.';
+  }
+  // Strip Markdown syntax and return a clean text snippet
+  const clean = article.content
+    .replace(/[#*`_~\[\]()\-+]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return clean.length > 140 ? clean.slice(0, 140) + '...' : clean;
+}
+
 export default function History() {
   const dispatch = useDispatch();
   const { items, total } = useSelector((s) => s.articles);
@@ -36,14 +51,43 @@ export default function History() {
     fetchList();
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this article?')) return;
-    try {
-      await dispatch(deleteArticleThunk(id)).unwrap();
-      toast.success('Deleted.');
-    } catch {
-      toast.error('Could not delete.');
-    }
+  const handleDelete = (id) => {
+    toast((t) => (
+      <div className="d-flex align-items-center gap-2 flex-wrap">
+        <span className="small text-text me-1">Delete this article?</span>
+        <button
+          className="btn btn-sm py-1 px-2 border-0 fw-bold"
+          style={{ background: '#ef4444', color: '#fff', borderRadius: '6px', fontSize: '0.75rem' }}
+          onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              await dispatch(deleteArticleThunk(id)).unwrap();
+              toast.success('Article deleted successfully.');
+            } catch {
+              toast.error('Could not delete.');
+            }
+          }}
+        >
+          Delete
+        </button>
+        <button
+          className="btn btn-sm py-1 px-2 border-0 fw-bold"
+          style={{ background: 'var(--surface-alt)', color: 'var(--text)', borderRadius: '6px', fontSize: '0.75rem', border: '1px solid var(--border)' }}
+          onClick={() => toast.dismiss(t.id)}
+        >
+          Cancel
+        </button>
+      </div>
+    ), {
+      duration: 5000,
+      style: {
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: '12px',
+        color: 'var(--text)',
+        boxShadow: 'var(--shadow-lg)',
+      }
+    });
   };
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -94,7 +138,7 @@ export default function History() {
         </Row>
       ) : items.length === 0 ? (
         <div className="empty-state">
-          <i className="bi bi-journal-text" />
+          <div className="icon"><i className="bi bi-journal-text" /></div>
           <p>No articles found. Try a different search or generate a new one.</p>
           <Link to="/generate"><Button>Generate article</Button></Link>
         </div>
@@ -107,9 +151,10 @@ export default function History() {
               
               return (
                 <Col xs={12} sm={6} lg={4} key={a._id}>
-                  <div 
-                    className="cf-card cf-card--hoverable cf-card--article h-100 d-flex flex-column cf-card-animated"
-                    style={{ animationDelay: `${index * 50}ms` }}
+                  <Link 
+                    to={`/articles/${a._id}`}
+                    className="cf-card cf-card--hoverable cf-card--article h-100 d-flex flex-column cf-card-animated text-decoration-none"
+                    style={{ animationDelay: `${index * 50}ms`, color: 'inherit' }}
                   >
                     <div className="cf-card__image-container">
                       {hasImage ? (
@@ -129,25 +174,29 @@ export default function History() {
 
                     <div className="cf-card__body d-flex flex-column flex-grow-1">
                       <div className="d-flex justify-content-between align-items-start mb-2">
-                        <Link to={`/articles/${a._id}`} className="text-decoration-none flex-grow-1">
-                          <h3 className="cf-card__title clamp-2 mb-0">{a.title || 'Untitled'}</h3>
-                        </Link>
+                        <h3 className="cf-card__title clamp-2 mb-0" style={{ color: 'var(--text)' }}>
+                          {a.title || 'Untitled'}
+                        </h3>
                         <Button
                           variant="link"
                           size="sm"
                           className="p-0 text-muted ms-2"
-                          onClick={() => handleDelete(a._id)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDelete(a._id);
+                          }}
                           title="Delete"
                         >
                           <i className="bi bi-trash" />
                         </Button>
                       </div>
 
-                      <Link to={`/articles/${a._id}`} className="text-decoration-none flex-grow-1">
-                        {a.metaDescription && (
-                          <p className="text-muted small clamp-3 mb-2">{a.metaDescription}</p>
-                        )}
-                      </Link>
+                      <div className="flex-grow-1">
+                        <p className="text-muted small clamp-3 mb-2">
+                          {getArticleSnippet(a)}
+                        </p>
+                      </div>
 
                       <div className="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
                         <div className="d-flex gap-1 flex-wrap">
@@ -157,7 +206,7 @@ export default function History() {
                         <span className="text-muted small">{a.wordCount || 0}w</span>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 </Col>
               );
             })}

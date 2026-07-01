@@ -6,8 +6,9 @@ import { closeMobileSidebar } from '../../store/slices/themeSlice';
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: 'bi-grid-1x2' },
   { to: '/generate', label: 'AI Generator', icon: 'bi-magic' },
+  { to: '/calendar', label: 'Calendar', icon: 'bi-calendar3' },
   { to: '/history', label: 'History', icon: 'bi-clock-history' },
-  { to: '/tools', label: 'Tools', icon: 'bi-tools' },
+  // { to: '/tools', label: 'Tools', icon: 'bi-tools' },
 ];
 
 const SECONDARY = [
@@ -54,7 +55,7 @@ export default function Sidebar() {
               className={({ isActive }) => `sidebar__link ${isActive ? 'is-active' : ''}`}
             >
               <i className={`bi ${item.icon}`} />
-              {item.label}
+              <span>{item.label}</span>
             </NavLink>
           </motion.div>
         ))}
@@ -75,7 +76,7 @@ export default function Sidebar() {
               className={({ isActive }) => `sidebar__link ${isActive ? 'is-active' : ''}`}
             >
               <i className={`bi ${item.icon}`} />
-              {item.label}
+              <span>{item.label}</span>
             </NavLink>
           </motion.div>
         ))}
@@ -88,10 +89,17 @@ export default function Sidebar() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <div style={{ fontWeight: 600, color: 'var(--text)' }}>{user.name}</div>
-            <div>{user.plan?.toUpperCase()} plan</div>
-            <div className="mt-2" style={{ fontSize: '0.78rem' }}>
-              {user.wordsUsed?.toLocaleString()} / {user.wordsLimit?.toLocaleString()} words
+            <div className="sidebar__footer-name">{user.name}</div>
+            <div className="sidebar__footer-plan">{user.plan || 'free'} plan</div>
+            <div className="sidebar__footer-usage">
+              <span>{(user.wordsUsed ?? 0).toLocaleString()} words</span>
+              <span>{(user.wordsLimit ?? 5000).toLocaleString()}</span>
+            </div>
+            <div className="sidebar__usage-bar">
+              <div
+                className="sidebar__usage-fill"
+                style={{ width: `${Math.min(100, Math.round(((user.wordsUsed ?? 0) / (user.wordsLimit ?? 5000)) * 100))}%` }}
+              />
             </div>
           </motion.div>
         ) : null}
