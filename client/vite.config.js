@@ -5,6 +5,15 @@ import react from '@vitejs/plugin-react';
 // We proxy /api in dev so the frontend code can use relative URLs.
 export default defineConfig({
   plugins: [react()],
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern',
+        quietDeps: true,
+        silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'if-function'],
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {
