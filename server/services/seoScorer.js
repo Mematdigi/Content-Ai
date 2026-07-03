@@ -107,6 +107,15 @@ function checkHeadings(markdown) {
   if (h1s.length === 0) issues.push('No H1 found');
   if (h1s.length > 1) issues.push(`${h1s.length} H1s found — should be exactly 1`);
 
+  const seen = new Set();
+  for (const h of headings) {
+    const normalized = h.text.toLowerCase().replace(/^[0-9.\s]+/, '').trim();
+    if (seen.has(normalized)) {
+      issues.push(`Duplicate heading found: "${h.text}"`);
+    }
+    seen.add(normalized);
+  }
+
   for (let i = 1; i < headings.length; i++) {
     if (headings[i].level - headings[i - 1].level > 1) {
       issues.push(`Skipped heading level: H${headings[i - 1].level} → H${headings[i].level}`);

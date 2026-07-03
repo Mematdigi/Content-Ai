@@ -160,7 +160,7 @@ async function generateOutline({ topic, brief, targetWordCount, headingsCount, a
 - Include a bullet list under at least one H2 or H3.
 - Plan a slot for one relevant quote from a famous sports figure or analyst related to the matchup.
 - Plan 2-3 image placement points spread across the article.
-- Mark a dedicated FAQ section at the end with exactly 5-6 distinct question-answer pairs targeting search queries related to the match. Do NOT invent answers to FAQs if the facts are not verified in the brief; write "Information not yet officially confirmed" for any unverified answers.`;
+- Mark a dedicated FAQ section followed by a Sources and References section at the end. The FAQ section must contain exactly 5-6 distinct question-answer pairs targeting search queries related to the match. Do NOT invent answers to FAQs if the facts are not verified in the brief; write "Information not yet officially confirmed" for any unverified answers.`;
     } else {
       nicheRequirements = `
 - If the Research Brief does not contain actual factual details about group standings, schedules, or team news for the requested topic, you MUST limit the outline to exactly two H2 headings: '1. Tournament Schedule and Status' and '2. FAQ'. Do NOT include headings for lineups, standings, tactics, or predictions if they are unverified.
@@ -170,7 +170,7 @@ async function generateOutline({ topic, brief, targetWordCount, headingsCount, a
 - Include a bullet list under at least one H2 or H3.
 - Plan a slot for one relevant quote from a famous sports figure or expert related to the topic.
 - Plan 2-3 image placement points spread across the article.
-- Mark a dedicated FAQ section at the end with exactly 5-6 distinct question-answer pairs directly related to the topic "${topic}" and the primary keyword "${primaryKeyword}". Do NOT invent answers; write "Information not yet officially confirmed" if the facts are not in the brief.`;
+- Mark a dedicated FAQ section followed by a Sources and References section at the end. The FAQ section must contain exactly 5-6 distinct question-answer pairs directly related to the topic "${topic}" and the primary keyword "${primaryKeyword}". Do NOT invent answers; write "Information not yet officially confirmed" if the facts are not in the brief.`;
     }
   } else if (niche === 'finance') {
     nicheRequirements = `
@@ -181,7 +181,7 @@ async function generateOutline({ topic, brief, targetWordCount, headingsCount, a
 - Include a bullet list under at least one H2 or H3.
 - Plan a slot for one relevant quote from a famous finance expert, economist, or industry leader.
 - Plan 2-3 image placement points spread across the article.
-- Mark a dedicated FAQ section at the end with exactly 5-6 distinct question-answer pairs based on real-world search queries.`;
+- Mark a dedicated FAQ section followed by a Sources and References section at the end. The FAQ section must contain exactly 5-6 distinct question-answer pairs based on real-world search queries.`;
   } else {
     nicheRequirements = `
 - At least 3 H2 headings: Each MUST incorporate the primary keyword "${primaryKeyword}" in exact match.
@@ -191,7 +191,7 @@ async function generateOutline({ topic, brief, targetWordCount, headingsCount, a
 - Include a bullet list under at least one H2 or H3.
 - Plan a slot for one relevant quote from a famous person or authority figure related to "${topic}".
 - Plan 2-3 image placement points spread across the article (after intro, mid-article, near conclusion).
-- Mark a dedicated FAQ section at the end with exactly 5-6 distinct question-answer pairs directly related to the topic "${topic}" and the primary keyword "${primaryKeyword}".`;
+- Mark a dedicated FAQ section followed by a Sources and References section at the end. The FAQ section must contain exactly 5-6 distinct question-answer pairs directly related to the topic "${topic}" and the primary keyword "${primaryKeyword}".`;
   }
 
   const currentDateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -208,22 +208,24 @@ MANDATORY outline layout sections that MUST be planned:
 - Title (H1 at the top)
 - Introduction (60-120 words written directly below the Title, explaining the topic briefly. Do NOT include a "## Introduction" heading).
 - H2 sections (with H3 where appropriate)
-- FAQ (exactly 5-6 question-answer slots)
 - Conclusion
+- FAQ (exactly 5-6 question-answer slots)
+- Sources and References
 
 MANDATORY outline requirements:
 - Only one H1 on the page (the title at the very top).
 - The introduction text (60-120 words explaining the topic briefly and clearly) must start immediately below the H1 Title. Do NOT create or include a "## Introduction" heading.
 - At least 3 content-carrying H2 headings (excluding FAQ and Conclusion). Each of these 3 content-carrying H2 headings MUST incorporate the primary keyword "${primaryKeyword}" in exact match.
 - At least 2 content-carrying H3 headings. Each of these 2 content-carrying H3 headings MUST incorporate the primary keyword "${primaryKeyword}" (or the main topic subject keyword "${primaryKeyword.split(' ').pop()}") naturally.
+- CRITICAL: Every heading (H2 and H3) must be completely unique. Never repeat or duplicate identical or extremely similar headings. Avoid repeating headings with different numbering.
 - A bullet list under at least one heading.
 - Plan a slot for one related quote from a famous/expert person.
 - A related comparison table based on facts in the brief.
 - Plan 2-3 image placement points spread across the article.
-- A dedicated FAQ section at the very end with exactly 5-6 distinct question-answer pairs directly related to the topic "${topic}" and the primary keyword "${primaryKeyword}".
+- A dedicated FAQ section with exactly 5-6 distinct question-answer pairs directly related to the topic "${topic}" and the primary keyword "${primaryKeyword}".
+- A Sources and References section at the very end listing the reference domains/sources.
 ${nicheRequirements}
 - Do NOT include an "About the Author" section.
-- Do NOT include a "Sources and References" section.
 ${insufficientData ? `- CRITICAL DATA WARNING: The Research Brief flagged INSUFFICIENT DATA for this time-sensitive query. Do NOT create outline headings that assume specific fixtures, match schedules, scores, or event details exist. Instead, limit the outline to: (1) a heading acknowledging that verified data is unavailable for the requested date, (2) general background if available, and (3) FAQ. Do NOT include headings for lineups, predictions, or match previews when no verified match data exists.` : ''}
 
 Research Brief Grounding (You must strictly base all outline headings, subheadings, comparison tables, and FAQ questions on these factual web references. Do NOT assume, invent, or hallucinate dates, locations, details, or timelines outside of these references. If any required table or comparison metric is not present in the Research Brief, do NOT include it in the outline headings or tables):
@@ -482,6 +484,7 @@ ARTICLE TEMPLATE:
 3. HEADING STRUCTURE:
    - At least 3 H2 headings. Each H2 heading MUST incorporate the primary keyword "${primaryKeyword}" in exact match.
    - At least 2 H3 headings. Each H3 heading MUST incorporate the primary keyword "${primaryKeyword}" (or the main topic subject keyword "${primaryKeyword.split(' ').pop()}") naturally.
+   - CRITICAL: Every single heading must be completely unique. Never repeat or duplicate identical or extremely similar headings. Avoid repeating headings with different numbering. Do NOT repeat or duplicate the same concepts, points, stats, definitions, or sentences in different sections. Keep the content fresh and progressive.
 
 4. KEYWORD TARGETING & DENSITY:
    - Primary keyword density: 0.5%–1%.
@@ -507,7 +510,7 @@ ARTICLE TEMPLATE:
 
 9. FAQ SECTION:
    - exactly 5–6 question-answer pairs targeting queries related to "${primaryKeyword}".
-   - Each answer: strictly 30–40 words. Keep it short, concise, and direct (not too long).
+   - Each answer: strictly 20–30 words. Keep it short, concise, and direct (not too long).
 
 10. SOURCES & REFERENCES:
     - ${authorRule}
@@ -734,12 +737,13 @@ async function humanizePass(content, topic, primaryKeyword) {
  3. Heading Structure:
     - Ensure there is only one H1 title.
     - Ensure H2 and H3 headings include the primary keyword "${primaryKeyword}" in exact match.
+    - Ensure all headings are completely unique. Never repeat, duplicate, or use extremely similar titles. Do NOT repeat or duplicate the same concepts, points, stats, definitions, or sentences in different sections. Keep the content fresh and progressive.
  4. Engagement & Elements:
     - Preserve all comparison tables, quotes, bullet lists, and image placeholders.
  5. Ending Paragraph:
     - Must be at least 60 words, including the primary keyword "${primaryKeyword}" naturally.
  6. FAQ Section:
-    - Ensure there are 5-6 FAQs, with answers strictly 30–40 words long (short and concise).
+    - Ensure there are 5-6 FAQs, with answers strictly 20–30 words long (short and concise).
  7. Reading Time:
     - Ensure there is an "Estimated Reading Time: X minutes" block below the H1 title.
  8. Formatting & Readability:
@@ -786,10 +790,11 @@ async function humanizePass(content, topic, primaryKeyword) {
     - CRITICAL: If a paragraph or section has a large amount of details or context to explain, do NOT write it as a single block. Break it down logically using subheadings (H3/H4) and describe details using clean bullet points and short paragraphs to keep the text natural and readable like human writing.
  3. Heading Structure:
     - Ensure H2 and H3 headings include the primary keyword "${primaryKeyword}" in exact match.
+    - Ensure all headings are completely unique. Never repeat, duplicate, or use extremely similar titles. Do NOT repeat or duplicate the same concepts, points, stats, definitions, or sentences in different sections. Keep the content fresh and progressive.
  4. Engagement & Elements:
     - Preserve all comparison tables, quotes, bullet lists, and image placeholders.
  5. FAQ Section:
-    - If the input block contains an FAQ section, ensure all FAQ answers are strictly 30–40 words long (short, concise, and direct).
+    - If the input block contains an FAQ section, ensure all FAQ answers are strictly 20–30 words long (short, concise, and direct).
  
  ${nicheGuidelines}
  
