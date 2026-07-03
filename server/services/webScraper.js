@@ -225,6 +225,9 @@ async function fetchGNewsApi(query, temporalInfo = null) {
 
         let cleanedQuery = query.replace(/\b\d{4}-\d{2}-\d{2}\b/g, '').trim();
 
+        // Strip strict punctuation that causes GNews syntax errors (colons, quotes, commas, parentheses)
+        cleanedQuery = cleanedQuery.replace(/[:"'\(\)\[\]\{\},\-\.\!\?]/g, ' ');
+
         // Strip the resolved date tag if present to prevent empty keyword matches
         if (temporalInfo && temporalInfo.date) {
           cleanedQuery = cleanedQuery.replace(new RegExp(escapeRegExp(temporalInfo.date), 'gi'), '');
@@ -236,6 +239,12 @@ async function fetchGNewsApi(query, temporalInfo = null) {
           .replace(/\b\d{1,2},?\s+\d{4}\b/g, '') // e.g. "July 3, 2026" or "3, 2026"
           .replace(/\s+/g, ' ')
           .trim();
+
+        // Truncate GNews queries to a max of 6 words to avoid empty results from over-specific AND matching
+        const words = cleanedQuery.split(/\s+/).filter(Boolean);
+        if (words.length > 6) {
+          cleanedQuery = words.slice(0, 6).join(' ');
+        }
 
         const url = 'https://gnews.io/api/v4/search';
         const params = {
