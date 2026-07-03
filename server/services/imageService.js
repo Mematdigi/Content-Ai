@@ -1,16 +1,3 @@
-/**
- * Image Service
- * -------------
- * Fetches real images from Unsplash (free) or Pexels (free) APIs
- * and replaces <!-- IMAGE: description --> placeholders in article content
- * with actual <img> tags that have proper alt text for SEO.
- *
- * Setup: Add one of these to your .env file:
- *   UNSPLASH_ACCESS_KEY=your_key    (get free at unsplash.com/developers)
- *   PEXELS_API_KEY=your_key         (get free at pexels.com/api)
- *
- * If no API key is configured, placeholders are left as-is.
- */
 
 const axios = require('axios');
 

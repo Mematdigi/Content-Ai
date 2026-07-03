@@ -165,6 +165,7 @@ export default function ArticleView() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { current } = useSelector((s) => s.articles);
+  const user = useSelector((s) => s.auth.user);
   const [editing, setEditing] = useState(false);
   const [draftContent, setDraftContent] = useState('');
   const [saving, setSaving] = useState(false);
@@ -486,14 +487,17 @@ export default function ArticleView() {
   }
 
   const seoBreakdown = current.seoReport?.breakdown || {};
+  const isOwner = current && user && String(current.user) === String(user._id);
 
   return (
     <>
       <div className="page__header flex-wrap gap-2">
         <div>
-          <Link to="/history" className="text-muted small mb-2 d-inline-block">
-            <i className="bi bi-arrow-left me-1" /> Back to history
-          </Link>
+          {user && (
+            <Link to="/history" className="text-muted small mb-2 d-inline-block">
+              <i className="bi bi-arrow-left me-1" /> Back to history
+            </Link>
+          )}
           <h1 className="page__title mb-1">{current.title || 'Untitled'}</h1>
           <p className="page__subtitle mb-0">
             {current.wordCount} words • {current.readingTimeMinutes || 1} min read •
@@ -501,17 +505,24 @@ export default function ArticleView() {
           </p>
         </div>
         <div className="d-flex gap-2 flex-wrap">
-          {!editing ? (
-            <Button variant="outline-secondary" onClick={() => setEditing(true)}>
-              <i className="bi bi-pencil me-1" /> Edit
-            </Button>
-          ) : (
+          {isOwner && (
             <>
-              <Button variant="outline-secondary" onClick={() => { setDraftContent(current.content); setEditing(false); }}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={saving}>
-                <i className="bi bi-check2 me-1" /> {saving ? 'Saving…' : 'Save'}
+              {!editing ? (
+                <Button variant="outline-secondary" onClick={() => setEditing(true)}>
+                  <i className="bi bi-pencil me-1" /> Edit
+                </Button>
+              ) : (
+                <>
+                  <Button variant="outline-secondary" onClick={() => { setDraftContent(current.content); setEditing(false); }}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSave} disabled={saving}>
+                    <i className="bi bi-check2 me-1" /> {saving ? 'Saving…' : 'Save'}
+                  </Button>
+                </>
+              )}
+              <Button variant="outline-danger" onClick={handleDelete}>
+                <i className="bi bi-trash" />
               </Button>
             </>
           )}
@@ -529,57 +540,55 @@ export default function ArticleView() {
               <Dropdown.Item onClick={() => handleExport('copy')}>Copy markdown</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
-
-          <Button variant="outline-danger" onClick={handleDelete}>
-            <i className="bi bi-trash" />
-          </Button>
         </div>
       </div>
 
-      <Row className="g-3 mb-3">
-        <Col xs={6} md={3}>
-          <div className="cf-card text-center">
-            <ScoreGauge value={current.seoScore || 0} label="SEO score" tone="brand" />
-          </div>
-        </Col>
-        <Col xs={6} md={3}>
-          <div className="cf-card text-center">
-            <ScoreGauge
-              value={current.aiScoreAfter ?? 0}
-              label="AI detection"
-              tone={(current.aiScoreAfter ?? 100) < 20 ? 'success' : 'danger'}
-              suffix="%"
-            />
-            {current.aiScoreBefore != null && (
-              <div className="small text-muted mt-2">
-                Before humanizer: {current.aiScoreBefore}%
-              </div>
-            )}
-          </div>
-        </Col>
-        <Col xs={6} md={3}>
-          <div className="cf-card text-center">
-            <div className="h2 mb-1 gradient-text">{current.wordCount || 0}</div>
-            <div className="text-muted small">Words</div>
-          </div>
-        </Col>
-        <Col xs={6} md={3}>
-          <div className="cf-card text-center">
-            <div className="h2 mb-1 gradient-text">{(current.sources || []).length}</div>
-            <div className="text-muted small">Sources analyzed</div>
-          </div>
-        </Col>
-      </Row>
+      {isOwner && (
+        <Row className="g-3 mb-3">
+          <Col xs={6} md={3}>
+            <div className="cf-card text-center">
+              <ScoreGauge value={current.seoScore || 0} label="SEO score" tone="brand" />
+            </div>
+          </Col>
+          <Col xs={6} md={3}>
+            <div className="cf-card text-center">
+              <ScoreGauge
+                value={current.aiScoreAfter ?? 0}
+                label="AI detection"
+                tone={(current.aiScoreAfter ?? 100) < 20 ? 'success' : 'danger'}
+                suffix="%"
+              />
+              {current.aiScoreBefore != null && (
+                <div className="small text-muted mt-2">
+                  Before humanizer: {current.aiScoreBefore}%
+                </div>
+              )}
+            </div>
+          </Col>
+          <Col xs={6} md={3}>
+            <div className="cf-card text-center">
+              <div className="h2 mb-1 gradient-text">{current.wordCount || 0}</div>
+              <div className="text-muted small">Words</div>
+            </div>
+          </Col>
+          <Col xs={6} md={3}>
+            <div className="cf-card text-center">
+              <div className="h2 mb-1 gradient-text">{(current.sources || []).length}</div>
+              <div className="text-muted small">Sources analyzed</div>
+            </div>
+          </Col>
+        </Row>
+      )}
 
       <Row className="g-3">
-        <Col xs={12} lg={8}>
+        <Col xs={12} lg={isOwner ? 8 : 10} className={!isOwner ? 'mx-auto' : ''}>
           <div className="cf-card">
             <Tab.Container activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
               <Nav variant="tabs" className="mb-3">
                 <Nav.Item><Nav.Link eventKey="content">Content</Nav.Link></Nav.Item>
-                <Nav.Item><Nav.Link eventKey="meta">Meta tags</Nav.Link></Nav.Item>
-                <Nav.Item><Nav.Link eventKey="seo">SEO breakdown</Nav.Link></Nav.Item>
-                <Nav.Item><Nav.Link eventKey="pipeline">Pipeline log</Nav.Link></Nav.Item>
+                {isOwner && <Nav.Item><Nav.Link eventKey="meta">Meta tags</Nav.Link></Nav.Item>}
+                {isOwner && <Nav.Item><Nav.Link eventKey="seo">SEO breakdown</Nav.Link></Nav.Item>}
+                {isOwner && <Nav.Item><Nav.Link eventKey="pipeline">Pipeline log</Nav.Link></Nav.Item>}
                 <Nav.Item><Nav.Link eventKey="sources">Grounding Sources</Nav.Link></Nav.Item>
               </Nav>
               <Tab.Content>
@@ -614,85 +623,89 @@ export default function ArticleView() {
                   )}
                 </Tab.Pane>
 
-                <Tab.Pane eventKey="meta">
-                   <div className="mb-3">
-                     <h3 className="h6 text-muted">Meta title ({(current.metaTitle || '').length} chars)</h3>
-                     <div className="cf-card cf-card--inset">{current.metaTitle || '—'}</div>
-                   </div>
-                   <div className="mb-3">
-                     <h3 className="h6 text-muted">Meta description ({(current.metaDescription || '').length} chars)</h3>
-                     <div className="cf-card cf-card--inset">{current.metaDescription || '—'}</div>
-                   </div>
-                   <div>
-                     <h3 className="h6 text-muted">URL slug</h3>
-                     <div className="cf-card cf-card--inset d-flex justify-content-between align-items-center">
-                       <span>{current.slug || (current.metaTitle || current.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '—'}</span>
-                       <Button 
-                         variant="link" 
-                         className="p-0 text-decoration-none text-muted" 
-                         onClick={() => {
-                           const s = current.slug || (current.metaTitle || current.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                           navigator.clipboard.writeText(s);
-                           toast.success('Slug copied to clipboard!');
-                         }}
-                         style={{ fontSize: '0.85rem' }}
-                       >
-                         <i className="bi bi-clipboard me-1" /> Copy
-                       </Button>
-                     </div>
-                   </div>
-                 </Tab.Pane>
+                {isOwner && (
+                  <>
+                    <Tab.Pane eventKey="meta">
+                       <div className="mb-3">
+                         <h3 className="h6 text-muted">Meta title ({(current.metaTitle || '').length} chars)</h3>
+                         <div className="cf-card cf-card--inset">{current.metaTitle || '—'}</div>
+                       </div>
+                       <div className="mb-3">
+                         <h3 className="h6 text-muted">Meta description ({(current.metaDescription || '').length} chars)</h3>
+                         <div className="cf-card cf-card--inset">{current.metaDescription || '—'}</div>
+                       </div>
+                       <div>
+                         <h3 className="h6 text-muted">URL slug</h3>
+                         <div className="cf-card cf-card--inset d-flex justify-content-between align-items-center">
+                           <span>{current.slug || (current.metaTitle || current.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '—'}</span>
+                           <Button 
+                             variant="link" 
+                             className="p-0 text-decoration-none text-muted" 
+                             onClick={() => {
+                               const s = current.slug || (current.metaTitle || current.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                               navigator.clipboard.writeText(s);
+                               toast.success('Slug copied to clipboard!');
+                             }}
+                             style={{ fontSize: '0.85rem' }}
+                           >
+                             <i className="bi bi-clipboard me-1" /> Copy
+                           </Button>
+                         </div>
+                       </div>
+                     </Tab.Pane>
 
-                <Tab.Pane eventKey="seo">
-                  <div className="d-flex flex-column gap-3">
-                    {Object.keys(seoBreakdown).length === 0 && (
-                      <div className="text-muted">No detailed breakdown available.</div>
-                    )}
-                    {Object.entries(seoBreakdown).map(([k, v]) => (
-                      <div key={k}>
-                        <div className="d-flex justify-content-between">
-                          <span className="text-capitalize">{k.replace(/([A-Z])/g, ' $1')}</span>
-                          <strong>{v}</strong>
-                        </div>
-                        <div className="progress" style={{ height: 6 }}>
-                          <div
-                            className="progress-bar"
-                            style={{ width: `${v}%`, background: 'var(--brand-gradient)' }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    {current.seoReport?.lsiKeywords?.length > 0 && (
-                      <div>
-                        <h3 className="h6 mt-3">LSI keywords found</h3>
-                        <div>
-                          {current.seoReport.lsiKeywords.slice(0, 20).map((k) => (
-                            <span key={k} className="badge bg-secondary-subtle text-secondary me-1 mb-1">{k}</span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </Tab.Pane>
-
-                <Tab.Pane eventKey="pipeline">
-                  {(current.pipelineSteps || []).length === 0 ? (
-                    <div className="text-muted">No pipeline log recorded.</div>
-                  ) : (
-                    <ul className="list-unstyled m-0">
-                      {current.pipelineSteps.map((s, i) => (
-                        <li key={i} className="d-flex gap-2 align-items-start mb-2">
-                          <i className={`bi ${s.status === 'ok' ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}`} />
-                          <div>
-                            <strong>{s.step}</strong>
-                            {s.provider && <span className="text-muted small ms-2">via {s.provider}</span>}
-                            {s.note && <div className="text-muted small">{s.note}</div>}
+                    <Tab.Pane eventKey="seo">
+                      <div className="d-flex flex-column gap-3">
+                        {Object.keys(seoBreakdown).length === 0 && (
+                          <div className="text-muted">No detailed breakdown available.</div>
+                        )}
+                        {Object.entries(seoBreakdown).map(([k, v]) => (
+                          <div key={k}>
+                            <div className="d-flex justify-content-between">
+                              <span className="text-capitalize">{k.replace(/([A-Z])/g, ' $1')}</span>
+                              <strong>{v}</strong>
+                            </div>
+                            <div className="progress" style={{ height: 6 }}>
+                              <div
+                                className="progress-bar"
+                                style={{ width: `${v}%`, background: 'var(--brand-gradient)' }}
+                              />
+                            </div>
                           </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </Tab.Pane>
+                        ))}
+                        {current.seoReport?.lsiKeywords?.length > 0 && (
+                          <div>
+                            <h3 className="h6 mt-3">LSI keywords found</h3>
+                            <div>
+                              {current.seoReport.lsiKeywords.slice(0, 20).map((k) => (
+                                <span key={k} className="badge bg-secondary-subtle text-secondary me-1 mb-1">{k}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </Tab.Pane>
+
+                    <Tab.Pane eventKey="pipeline">
+                      {(current.pipelineSteps || []).length === 0 ? (
+                        <div className="text-muted">No pipeline log recorded.</div>
+                      ) : (
+                        <ul className="list-unstyled m-0">
+                          {current.pipelineSteps.map((s, i) => (
+                            <li key={i} className="d-flex gap-2 align-items-start mb-2">
+                              <i className={`bi ${s.status === 'ok' ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}`} />
+                              <div>
+                                <strong>{s.step}</strong>
+                                {s.provider && <span className="text-muted small ms-2">via {s.provider}</span>}
+                                {s.note && <div className="text-muted small">{s.note}</div>}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </Tab.Pane>
+                  </>
+                )}
 
                 <Tab.Pane eventKey="sources">
                   <h3 className="h6 text-muted mb-3">Sources & Grounding References</h3>
@@ -734,49 +747,51 @@ export default function ArticleView() {
           </div>
         </Col>
 
-        <Col xs={12} lg={4}>
-          {/* Smart suggestions */}
-          <div className="cf-card mb-3">
-            <h2 className="h6 mb-3">
-              <i className="bi bi-lightbulb me-1 text-warning" /> Enhance your article
-            </h2>
-            {(current.suggestions || []).length === 0 ? (
-              <div className="text-muted small">No suggestions — your article looks complete.</div>
-            ) : (
-              <ul className="suggestion-list">
-                {current.suggestions.map((s, i) => (
-                  <li key={i} className="suggestion-list__item">
-                    <span className={`badge-type badge-type--${s.type}`}>{s.type}</span>
-                    <div className="suggestion-list__body">
-                      <div className="suggestion-list__text">{s.text}</div>
-                      {s.detail && <div className="suggestion-list__detail">{s.detail}</div>}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+        {isOwner && (
+          <Col xs={12} lg={4}>
+            {/* Smart suggestions */}
+            <div className="cf-card mb-3">
+              <h2 className="h6 mb-3">
+                <i className="bi bi-lightbulb me-1 text-warning" /> Enhance your article
+              </h2>
+              {(current.suggestions || []).length === 0 ? (
+                <div className="text-muted small">No suggestions — your article looks complete.</div>
+              ) : (
+                <ul className="suggestion-list">
+                  {current.suggestions.map((s, i) => (
+                    <li key={i} className="suggestion-list__item">
+                      <span className={`badge-type badge-type--${s.type}`}>{s.type}</span>
+                      <div className="suggestion-list__body">
+                        <div className="suggestion-list__text">{s.text}</div>
+                        {s.detail && <div className="suggestion-list__detail">{s.detail}</div>}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
-          {/* Sources */}
-          <div className="cf-card">
-            <h2 className="h6 mb-3"><i className="bi bi-globe2 me-1" /> Sources analyzed</h2>
-            {(current.sources || []).length === 0 ? (
-              <div className="text-muted small">No external sources were used.</div>
-            ) : (
-              <ul className="source-list">
-                {current.sources.map((src, i) => (
-                  <li key={i}>
-                    <a href={src.url} target="_blank" rel="noreferrer noopener">
-                      <strong>{src.title || src.url}</strong>
-                      <div className="text-muted small">{src.url}</div>
-                    </a>
-                    {src.note && <p className="text-muted small mt-1 mb-0">{src.note}</p>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </Col>
+            {/* Sources */}
+            <div className="cf-card">
+              <h2 className="h6 mb-3"><i className="bi bi-globe2 me-1" /> Sources analyzed</h2>
+              {(current.sources || []).length === 0 ? (
+                <div className="text-muted small">No external sources were used.</div>
+              ) : (
+                <ul className="source-list">
+                  {current.sources.map((src, i) => (
+                    <li key={i}>
+                      <a href={src.url} target="_blank" rel="noreferrer noopener">
+                        <strong>{src.title || src.url}</strong>
+                        <div className="text-muted small">{src.url}</div>
+                      </a>
+                      {src.note && <p className="text-muted small mt-1 mb-0">{src.note}</p>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </Col>
+        )}
       </Row>
     </>
   );

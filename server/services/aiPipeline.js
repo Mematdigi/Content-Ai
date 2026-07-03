@@ -507,7 +507,7 @@ ARTICLE TEMPLATE:
 
 9. FAQ SECTION:
    - exactly 5–6 question-answer pairs targeting queries related to "${primaryKeyword}".
-   - Each answer: strictly 20–40 words. Keep it short, concise, and direct (not too long).
+   - Each answer: strictly 30–40 words. Keep it short, concise, and direct (not too long).
 
 10. SOURCES & REFERENCES:
     - ${authorRule}
@@ -739,7 +739,7 @@ async function humanizePass(content, topic, primaryKeyword) {
  5. Ending Paragraph:
     - Must be at least 60 words, including the primary keyword "${primaryKeyword}" naturally.
  6. FAQ Section:
-    - Ensure there are 5-6 FAQs, with answers strictly 20–40 words long (short and concise).
+    - Ensure there are 5-6 FAQs, with answers strictly 30–40 words long (short and concise).
  7. Reading Time:
     - Ensure there is an "Estimated Reading Time: X minutes" block below the H1 title.
  8. Formatting & Readability:
@@ -766,11 +766,48 @@ async function humanizePass(content, topic, primaryKeyword) {
       const parts = local.text.split(/(?=^##\s+[^#])/gm);
       if (parts.length > 1) {
         console.info(`[aiPipeline] Humanizing article in parallel (${parts.length} sections)...`);
+        
+        // Define a system prompt for individual section humanizing to prevent duplication
+        const sectionSystem = `You are a senior journalist rewriting the provided text block to sound highly human-written, engaging, and polished. Study and follow the writing style of this lifestyle blog article: https://flypped.com/lifestyle/benefits-of-buttermilk
+ 
+ VOICE & TONE (this is the #1 priority):
+ - Warm, direct, natural, and human tone. Explain things clearly and simply as a human author would.
+ - Do NOT use typical AI introductory/transition fillers.
+ - Use simple words and phrases. Avoid complex jargon or unnatural, flowery language.
+ - Use synonyms and semantic/related keywords naturally throughout the text instead of repeating the same keyword mechanically.
+ - Use natural contractions always: "don't", "isn't", "won't", "it's", "here's", "that's".
+
+ STRICT WRITING RULES:
+ 1. Avoid AI Clichés:
+    - Do NOT use phrases like: "In today's digital world", "In today's fast-paced world", "Dive into", "Delve into", "Unlock", "Harness", "Elevate", "Revolutionize", "It is important to note", "Seamlessly", "Robust", "Cutting-edge", "Furthermore", "Moreover", "Consequently", "Whether you're", "Imagine", "Let's explore", "circle your calendars", "let's break down".
+    - Avoid generic introductions or meta-commentary like "In this article, we will...".
+ 2. Paragraph Readability:
+    - Keep paragraphs short and easy to read. Each paragraph MUST be between 40 and 90 words, and exactly 2 to 4 lines. No single-sentence paragraphs, and no huge walls of text.
+    - CRITICAL: If a paragraph or section has a large amount of details or context to explain, do NOT write it as a single block. Break it down logically using subheadings (H3/H4) and describe details using clean bullet points and short paragraphs to keep the text natural and readable like human writing.
+ 3. Heading Structure:
+    - Ensure H2 and H3 headings include the primary keyword "${primaryKeyword}" in exact match.
+ 4. Engagement & Elements:
+    - Preserve all comparison tables, quotes, bullet lists, and image placeholders.
+ 5. FAQ Section:
+    - If the input block contains an FAQ section, ensure all FAQ answers are strictly 30–40 words long (short, concise, and direct).
+ 
+ ${nicheGuidelines}
+ 
+ PRESERVATION & SECTION-SPECIFIC RULES (critical):
+ - Do NOT write a complete article. Only rewrite the provided text block.
+ - Do NOT add any H1 titles, Estimated Reading Time blocks, Table of Contents, FAQ sections, or Conclusions unless they are already present in the input text block.
+ - Keep ALL facts, numbers, data, and claims exactly as they are.
+ - Preserve ALL: image placeholders (<!-- IMAGE: ... -->), blockquotes (> ...), markdown tables, HTML chart blocks (<div class="custom-chart">), FAQ sections, and headings exactly as they appear in the input text block.
+ - Same structure, same sections, same order as the input block.
+ - Today's Date: ${currentDateStr}. Preserve all dates, times, and proper nouns.
+ 
+ Output clean markdown only. Do NOT start with "Here is the rewritten section" or any preamble.`;
+
         const humanizedParts = await Promise.all(
           parts.map(async (part) => {
             if (!part.trim()) return '';
             try {
-              const { text } = await smartComplete('anthropic', system, part, { maxTokens: 2500 });
+              const { text } = await smartComplete('anthropic', sectionSystem, part, { maxTokens: 2500 });
               return postLlmValidation(text, niche);
             } catch (err) {
               console.warn(`[humanizePass] Section humanization failed, using original: ${err.message}`);

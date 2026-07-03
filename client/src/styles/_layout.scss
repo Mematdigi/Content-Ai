@@ -13,6 +13,10 @@
   color: var(--text);
   transition: background 0.3s ease, color 0.3s ease;
 
+  &.is-public {
+    grid-template-columns: 1fr;
+  }
+
   &.is-collapsed {
     .sidebar {
       width: $sidebar-collapsed-width;

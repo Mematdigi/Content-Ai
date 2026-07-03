@@ -34,13 +34,16 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
+        <Route element={<MainLayout />}>
+          <Route path="/articles/:id" element={<ArticleView />} />
+        </Route>
+
         <Route element={<PrivateRoute />}>
           <Route element={<MainLayout />}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/generate" element={<Generator />} />
             <Route path="/generate/wizard" element={<WizardGenerator />} />
-            <Route path="/articles/:id" element={<ArticleView />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/history" element={<History />} />
             <Route path="/tools" element={<Tools />} />

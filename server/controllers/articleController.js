@@ -232,9 +232,9 @@ const listArticles = asyncHandler(async (req, res) => {
 
 // @desc   Get a single article
 // @route  GET /api/articles/:id
-// @access Private
+// @access Public
 const getArticle = asyncHandler(async (req, res) => {
-  const article = await Article.findOne({ _id: req.params.id, user: req.user._id });
+  const article = await Article.findById(req.params.id);
   if (!article) {
     res.status(404);
     throw new Error('Article not found');

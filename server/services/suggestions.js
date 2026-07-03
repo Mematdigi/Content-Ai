@@ -1,11 +1,3 @@
-/**
- * Smart Suggestions Service
- * -------------------------
- * After an article is generated, this service compares it against the
- * research brief to flag opportunities to enhance the piece — gaps in
- * subtopic coverage, missing statistics, candidate internal/external links,
- * recommended schema markup, and image suggestions.
- */
 
 const { keywordDensity } = require('./seoScorer');
 

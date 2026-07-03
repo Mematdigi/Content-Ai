@@ -10,11 +10,13 @@ const {
 
 const router = express.Router();
 
+// Publicly view article
+router.get('/:id', getArticle);
+
 router.use(protect);
 
 router.post('/generate', generateArticle);
 router.get('/', listArticles);
-router.get('/:id', getArticle);
 router.put('/:id', updateArticle);
 router.delete('/:id', deleteArticle);
 
