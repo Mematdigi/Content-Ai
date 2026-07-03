@@ -160,7 +160,7 @@ async function generateOutline({ topic, brief, targetWordCount, headingsCount, a
 - Include a bullet list under at least one H2 or H3.
 - Plan a slot for one relevant quote from a famous sports figure or analyst related to the matchup.
 - Plan 2-3 image placement points spread across the article.
-- Mark a dedicated FAQ section followed by a Sources and References section at the end. The FAQ section must contain exactly 5-6 distinct question-answer pairs targeting search queries related to the match. Do NOT invent answers to FAQs if the facts are not verified in the brief; write "Information not yet officially confirmed" for any unverified answers.`;
+- Mark a dedicated FAQ section followed by a Sources and References section at the end. The FAQ section must contain exactly 5 distinct question-answer pairs targeting search queries related to the match. Do NOT invent answers to FAQs if the facts are not verified in the brief; write "Information not yet officially confirmed" for any unverified answers.`;
     } else {
       nicheRequirements = `
 - If the Research Brief does not contain actual factual details about group standings, schedules, or team news for the requested topic, you MUST limit the outline to exactly two H2 headings: '1. Tournament Schedule and Status' and '2. FAQ'. Do NOT include headings for lineups, standings, tactics, or predictions if they are unverified.
@@ -170,7 +170,7 @@ async function generateOutline({ topic, brief, targetWordCount, headingsCount, a
 - Include a bullet list under at least one H2 or H3.
 - Plan a slot for one relevant quote from a famous sports figure or expert related to the topic.
 - Plan 2-3 image placement points spread across the article.
-- Mark a dedicated FAQ section followed by a Sources and References section at the end. The FAQ section must contain exactly 5-6 distinct question-answer pairs directly related to the topic "${topic}" and the primary keyword "${primaryKeyword}". Do NOT invent answers; write "Information not yet officially confirmed" if the facts are not in the brief.`;
+- Mark a dedicated FAQ section followed by a Sources and References section at the end. The FAQ section must contain exactly 5 distinct question-answer pairs directly related to the topic "${topic}" and the primary keyword "${primaryKeyword}". Do NOT invent answers; write "Information not yet officially confirmed" if the facts are not in the brief.`;
     }
   } else if (niche === 'finance') {
     nicheRequirements = `
@@ -181,8 +181,9 @@ async function generateOutline({ topic, brief, targetWordCount, headingsCount, a
 - Include a bullet list under at least one H2 or H3.
 - Plan a slot for one relevant quote from a famous finance expert, economist, or industry leader.
 - Plan 2-3 image placement points spread across the article.
-- Mark a dedicated FAQ section followed by a Sources and References section at the end. The FAQ section must contain exactly 5-6 distinct question-answer pairs based on real-world search queries.`;
+- Mark a dedicated FAQ section followed by a Sources and References section at the end. The FAQ section must contain exactly 5 distinct question-answer pairs based on real-world search queries.`;
   } else {
+    const isHealthOrBeauty = /health|skin|beauty|fit|anx|niacinamide|medical|diet/i.test(topic + ' ' + primaryKeyword);
     nicheRequirements = `
 - At least 3 H2 headings: Each MUST incorporate the primary keyword "${primaryKeyword}" in exact match.
 - At least 2 H3 headings: Each MUST incorporate the primary keyword "${primaryKeyword}" in exact match.
@@ -191,7 +192,7 @@ async function generateOutline({ topic, brief, targetWordCount, headingsCount, a
 - Include a bullet list under at least one H2 or H3.
 - Plan a slot for one relevant quote from a famous person or authority figure related to "${topic}".
 - Plan 2-3 image placement points spread across the article (after intro, mid-article, near conclusion).
-- Mark a dedicated FAQ section followed by a Sources and References section at the end. The FAQ section must contain exactly 5-6 distinct question-answer pairs directly related to the topic "${topic}" and the primary keyword "${primaryKeyword}".`;
+- Mark a dedicated FAQ section followed by a Sources and References section at the end. The FAQ section must contain exactly 5 distinct question-answer pairs directly related to the topic "${topic}" and the primary keyword "${primaryKeyword}".${isHealthOrBeauty ? '\n- SPECIAL ACCURACY RULE FOR HEALTH & SKINCARE: Do NOT repeat outdated internet myths (for example: do NOT say Vitamin C and Niacinamide cannot be mixed, as modern dermatology confirms they can). Base all claims strictly on the provided research brief and modern, up-to-date scientific consensus. Keep information scientifically accurate, evidence-based, and realistic.' : ''}`;
   }
 
   const currentDateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -209,7 +210,7 @@ MANDATORY outline layout sections that MUST be planned:
 - Introduction (60-120 words written directly below the Title, explaining the topic briefly. Do NOT include a "## Introduction" heading).
 - H2 sections (with H3 where appropriate)
 - Conclusion
-- FAQ (exactly 5-6 question-answer slots)
+- FAQ (exactly 5 question-answer slots)
 - Sources and References
 
 MANDATORY outline requirements:
@@ -222,7 +223,7 @@ MANDATORY outline requirements:
 - Plan a slot for one related quote from a famous/expert person.
 - A related comparison table based on facts in the brief.
 - Plan 2-3 image placement points spread across the article.
-- A dedicated FAQ section with exactly 5-6 distinct question-answer pairs directly related to the topic "${topic}" and the primary keyword "${primaryKeyword}".
+- A dedicated FAQ section with exactly 5 distinct question-answer pairs directly related to the topic "${topic}" and the primary keyword "${primaryKeyword}".
 - A Sources and References section at the very end listing the reference domains/sources.
 ${nicheRequirements}
 - Do NOT include an "About the Author" section.
@@ -502,6 +503,7 @@ ARTICLE TEMPLATE:
 7. IMAGE PLACEHOLDERS:
    - Insert 2–3 image markers: <!-- IMAGE: [descriptive alt text] -->
    - Spread them across intro area, mid-article, and conclusion area.
+   - CRITICAL: Do NOT write any normal text like "Image Placeholder 2", "[Image Placeholder]", or Unsplash credits in the article body. ONLY use the exact HTML comment format: <!-- IMAGE: [description] -->.
 
 8. ENDING PARAGRAPH:
    - At least 60 words.
@@ -509,7 +511,7 @@ ARTICLE TEMPLATE:
    - End with a clear next step or actionable takeaway.
 
 9. FAQ SECTION:
-   - exactly 5–6 question-answer pairs targeting queries related to "${primaryKeyword}".
+   - exactly 5 question-answer pairs targeting queries related to "${primaryKeyword}".
    - Each answer: strictly 20–30 words. Keep it short, concise, and direct (not too long).
 
 10. SOURCES & REFERENCES:
@@ -522,6 +524,7 @@ BANNED PHRASES (never use these — they are AI fingerprints):
 "multifaceted", "the ever-evolving", "in today's world", "game changer", "navigating the",
 "as we adapt to", "gear up for", "poised to", "at the end of the day", "the bottom line is",
 "understanding these changes can help you", "plays a crucial role", "it goes without saying",
+"does wonders", "is a breeze", "powerhouse", "look no further", "in summary",
 "in today's digital world", "in today's fast-paced world", "dive into", "delve into", "unlock",
 "harness", "elevate", "revolutionize", "seamlessly", "robust", "cutting-edge", "consequently",
 "whether you're", "imagine", "let's explore", "circle your calendars", "let's break down".
@@ -559,11 +562,18 @@ Output clean markdown only. No preamble, no notes.`;
       const section = sections[i];
       
       // Calculate section target word count dynamically:
-      // Give the intro ~200 words, and divide the remainder among the H2 sections
       let sectionTarget = 200;
       if (!section.isIntro) {
-        const h2SectionsCount = sections.filter(s => !s.isIntro).length || 1;
-        sectionTarget = Math.max(250, Math.round((targetWordCount - 200) / h2SectionsCount));
+        const isFaq = section.heading.toLowerCase().includes('faq');
+        const isSources = section.heading.toLowerCase().includes('source') || section.heading.toLowerCase().includes('reference');
+        if (isFaq) {
+          sectionTarget = 150; // 5 questions * 20-30 words = ~150 words
+        } else if (isSources) {
+          sectionTarget = 50; // Sources list is very short
+        } else {
+          const h2SectionsCount = sections.filter(s => !s.isIntro && !s.heading.toLowerCase().includes('faq') && !s.heading.toLowerCase().includes('source') && !s.heading.toLowerCase().includes('reference')).length || 1;
+          sectionTarget = Math.max(250, Math.round((targetWordCount - 200 - 150 - 50) / h2SectionsCount));
+        }
       }
 
       if (onProgress) {
@@ -571,6 +581,11 @@ Output clean markdown only. No preamble, no notes.`;
           step: 'writing', 
           label: `Writing section ${i + 1} of ${sections.length}: ${section.heading}...` 
         });
+      }
+
+      let instructionSuffix = 'No notes, no preamble.';
+      if (section.heading.toLowerCase().includes('faq')) {
+        instructionSuffix = 'CRITICAL FAQ RULE: Every single FAQ answer must be strictly 20–30 words long. Keep them extremely short, direct, and concise (similar to Google\'s Featured Snippets / People Also Ask answers). Do NOT write long explanations. No notes, no preamble.';
       }
 
       const sectionPrompt = `You are writing a single section of a longer article on "${topic}".
@@ -597,7 +612,7 @@ Research Brief Grounding (Paraphrase the facts, do not copy verbatim):
 ${brief}
 ---
 
-Write the content for this section now (include the H2 heading and any H3 subheadings from the outline). No notes, no preamble.`;
+Write the content for this section now (include the H2 heading and any H3 subheadings from the outline). ${instructionSuffix}`;
 
       const { text: sectionText } = await smartComplete('anthropic', system, sectionPrompt, { maxTokens: 2500 });
       fullArticleText += (fullArticleText ? '\n\n' : '') + sectionText;
@@ -619,12 +634,12 @@ Secondary keywords: ${(secondaryKeywords || []).join(', ')}
 Target word count: ${targetWordCount} words.
 ${isHypothetical ? 'CRITICAL: This matchup is HYPOTHETICAL and NOT officially scheduled yet. You MUST explicitly state in the first paragraph that this is a potential, projected, or simulated matchup if the teams qualify and advance to face each other. You must frame any kickoff date, time, and venue as projected slot details if the clash occurs, rather than as a confirmed scheduled match. The entire article must reflect this hypothetical framing.' : ''}
 
-Research Brief Grounding (Paraphrase the facts, do not copy verbatim):
+Research Brief Grounding (Paraphrase the verbatim facts, do not invent):
 ---
 ${brief}
 ---
 
-Write the full article now.`;
+Write the full article now. Ensure that all FAQ answers are strictly 20–30 words long each, keeping them extremely direct, simple, and concise (similar to Google PAA answers).`;
 
   const { text, model } = await smartComplete('anthropic', system, prompt, { maxTokens: 4000 });
   return { content: text, model, durationMs: Date.now() - t0, status: 'ok' };
@@ -729,7 +744,7 @@ async function humanizePass(content, topic, primaryKeyword) {
 
  STRICT WRITING RULES:
  1. Avoid AI Clichés:
-    - Do NOT use phrases like: "In today's digital world", "In today's fast-paced world", "Dive into", "Delve into", "Unlock", "Harness", "Elevate", "Revolutionize", "It is important to note", "Seamlessly", "Robust", "Cutting-edge", "Furthermore", "Moreover", "Consequently", "Whether you're", "Imagine", "Let's explore", "circle your calendars", "let's break down".
+    - Do NOT use phrases like: "In today's digital world", "In today's fast-paced world", "Dive into", "Delve into", "Unlock", "Harness", "Elevate", "Revolutionize", "It is important to note", "Seamlessly", "Robust", "Cutting-edge", "Furthermore", "Moreover", "Consequently", "Whether you're", "Imagine", "Let's explore", "circle your calendars", "let's break down", "does wonders", "is a breeze", "powerhouse", "look no further", "in summary".
     - Avoid generic introductions or meta-commentary like "In this article, we will...".
  2. Paragraph Readability:
     - Keep paragraphs short and easy to read. Each paragraph MUST be between 40 and 90 words, and exactly 2 to 4 lines. No single-sentence paragraphs, and no huge walls of text.
@@ -740,10 +755,11 @@ async function humanizePass(content, topic, primaryKeyword) {
     - Ensure all headings are completely unique. Never repeat, duplicate, or use extremely similar titles. Do NOT repeat or duplicate the same concepts, points, stats, definitions, or sentences in different sections. Keep the content fresh and progressive.
  4. Engagement & Elements:
     - Preserve all comparison tables, quotes, bullet lists, and image placeholders.
+    - CRITICAL: Ensure that image placeholders are strictly kept as HTML comments (<!-- IMAGE: ... -->) and never turned into normal text like "Image Placeholder 2" or markdown image tags.
  5. Ending Paragraph:
     - Must be at least 60 words, including the primary keyword "${primaryKeyword}" naturally.
  6. FAQ Section:
-    - Ensure there are 5-6 FAQs, with answers strictly 20–30 words long (short and concise).
+    - Ensure there are exactly 5 FAQs, with answers strictly 20–30 words long (short and concise).
  7. Reading Time:
     - Ensure there is an "Estimated Reading Time: X minutes" block below the H1 title.
  8. Formatting & Readability:
@@ -783,7 +799,7 @@ async function humanizePass(content, topic, primaryKeyword) {
 
  STRICT WRITING RULES:
  1. Avoid AI Clichés:
-    - Do NOT use phrases like: "In today's digital world", "In today's fast-paced world", "Dive into", "Delve into", "Unlock", "Harness", "Elevate", "Revolutionize", "It is important to note", "Seamlessly", "Robust", "Cutting-edge", "Furthermore", "Moreover", "Consequently", "Whether you're", "Imagine", "Let's explore", "circle your calendars", "let's break down".
+    - Do NOT use phrases like: "In today's digital world", "In today's fast-paced world", "Dive into", "Delve into", "Unlock", "Harness", "Elevate", "Revolutionize", "It is important to note", "Seamlessly", "Robust", "Cutting-edge", "Furthermore", "Moreover", "Consequently", "Whether you're", "Imagine", "Let's explore", "circle your calendars", "let's break down", "does wonders", "is a breeze", "powerhouse", "look no further", "in summary".
     - Avoid generic introductions or meta-commentary like "In this article, we will...".
  2. Paragraph Readability:
     - Keep paragraphs short and easy to read. Each paragraph MUST be between 40 and 90 words, and exactly 2 to 4 lines. No single-sentence paragraphs, and no huge walls of text.
@@ -793,6 +809,7 @@ async function humanizePass(content, topic, primaryKeyword) {
     - Ensure all headings are completely unique. Never repeat, duplicate, or use extremely similar titles. Do NOT repeat or duplicate the same concepts, points, stats, definitions, or sentences in different sections. Keep the content fresh and progressive.
  4. Engagement & Elements:
     - Preserve all comparison tables, quotes, bullet lists, and image placeholders.
+    - CRITICAL: Ensure that image placeholders are strictly kept as HTML comments (<!-- IMAGE: ... -->) and never turned into normal text like "Image Placeholder 2" or markdown image tags.
  5. FAQ Section:
     - If the input block contains an FAQ section, ensure all FAQ answers are strictly 20–30 words long (short, concise, and direct).
  
@@ -984,9 +1001,20 @@ async function runPipeline(input, onProgress = () => {}) {
     faqs
   });
 
+  const customStyles = `
+<style>
+  .faq-question {
+    cursor: pointer !important;
+  }
+  .faq-question:hover {
+    background-color: rgba(0, 0, 0, 0.02) !important;
+  }
+</style>
+`.trim();
+
   return {
     outline: outline.outline,
-    content: `${cleanContent}\n\n${jsonLd}`,
+    content: `${cleanContent}\n\n${customStyles}\n\n${jsonLd}`,
     metaTitle: optimized.metaTitle,
     metaDescription: optimized.metaDescription,
     slug: optimized.slug,

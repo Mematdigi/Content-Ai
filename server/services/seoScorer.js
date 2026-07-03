@@ -230,13 +230,54 @@ function checkSchemaInContent(content) {
 
 function checkFaqSection(content) {
   const faqHeading = /^#{1,3}\s+.*FAQ/im.test(content);
-  if (!faqHeading) return { hasFaq: false, count: 0 };
+  if (!faqHeading) return { hasFaq: false, count: 0, answersTooLong: [] };
   const faqMatch = content.match(/^#{1,3}\s+.*FAQ[\s\S]*/im);
-  if (!faqMatch) return { hasFaq: false, count: 0 };
+  if (!faqMatch) return { hasFaq: false, count: 0, answersTooLong: [] };
   const faqSection = faqMatch[0];
   const questions = faqSection.match(/^#{1,4}\s+.+\?/gm) ||
                     faqSection.match(/\*\*[^*]+\?\*\*/g) || [];
-  return { hasFaq: true, count: questions.length };
+
+  const lines = faqSection.split('\n');
+  const answersTooLong = [];
+  let currentQuestion = null;
+  let currentAnswerWords = 0;
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) continue;
+
+    const lowerLine = line.toLowerCase();
+    if (line.startsWith('#') && !line.includes('FAQ')) {
+      // Heading of next section (e.g. ## Sources and References or ## Conclusion)
+      break;
+    }
+    if (lowerLine.startsWith('sources') || lowerLine.startsWith('about the') || lowerLine.startsWith('conclusion') || lowerLine.startsWith('wrapping up')) {
+      break;
+    }
+
+    const isNumbered = /^\d+\.\s+/.test(line);
+    const isBoldQuestion = /^\*\*(.*?)\*\*/.test(line) && line.includes('?');
+    const isRawQuestion = line.endsWith('?') && line.length < 150;
+
+    if (isNumbered || isBoldQuestion || isRawQuestion) {
+      if (currentQuestion && currentAnswerWords > 30) {
+        answersTooLong.push({ question: currentQuestion, wordCount: currentAnswerWords });
+      }
+      currentQuestion = line;
+      currentAnswerWords = 0;
+    } else if (currentQuestion) {
+      const cleanLine = line.replace(/[#*`_>]/g, '').trim();
+      if (cleanLine) {
+        currentAnswerWords += cleanLine.split(/\s+/).filter(Boolean).length;
+      }
+    }
+  }
+
+  if (currentQuestion && currentAnswerWords > 30) {
+    answersTooLong.push({ question: currentQuestion, wordCount: currentAnswerWords });
+  }
+
+  return { hasFaq: true, count: questions.length, answersTooLong };
 }
 
 function scoreArticle({ content, title, metaTitle, metaDescription, primaryKeyword, secondaryKeywords = [], targetWordCount }) {
@@ -338,11 +379,15 @@ function scoreArticle({ content, title, metaTitle, metaDescription, primaryKeywo
 
   // 11. FAQ section with 5+ questions (max 5)
   let faqPart = 0;
-  if (faq.hasFaq && faq.count >= 5) faqPart = 5;
-  else if (faq.hasFaq && faq.count >= 3) faqPart = 3;
+  if (faq.hasFaq && faq.count === 5) faqPart = 5;
+  else if (faq.hasFaq && (faq.count === 4 || faq.count === 6)) faqPart = 3;
   else if (faq.hasFaq) faqPart = 1;
+  
+  if (faq.answersTooLong && faq.answersTooLong.length > 0) {
+    faqPart = Math.max(0, faqPart - 2); // deduct 2 points if any answers are too long
+  }
   score += faqPart;
-  parts.push(`FAQ section (${faq.count} questions): +${faqPart}`);
+  parts.push(`FAQ section (${faq.count} questions, ${faq.answersTooLong ? faq.answersTooLong.length : 0} too long): +${faqPart}`);
 
   // 12. JSON-LD schema markup embedded in content (max 10)
   const schemaPart = schema.ok ? 10 : 0;
@@ -393,8 +438,13 @@ function buildSuggestions({ primary, secondary, readability, headingStructure, m
   if (!metaDescOk) out.push('Meta description should be 150–160 characters.');
 
   // FAQ
-  if (!faq || !faq.hasFaq) out.push('E-E-A-T: Add a FAQ section with 5-6 questions to target People Also Ask results.');
-  else if (faq.count < 5) out.push(`FAQ section has only ${faq.count} questions — add more to target 5-6 for Featured Snippets.`);
+  if (!faq || !faq.hasFaq) out.push('E-E-A-T: Add a FAQ section with exactly 5 questions to target People Also Ask results.');
+  else {
+    if (faq.count !== 5) out.push(`FAQ section has ${faq.count} questions — it should be exactly 5 questions for Featured Snippets.`);
+    if (faq.answersTooLong && faq.answersTooLong.length > 0) {
+      out.push(`FAQ: Keep answers strictly under 20-30 words (currently has answer of ${faq.answersTooLong[0].wordCount} words).`);
+    }
+  }
 
   // Snippet readiness
   if (snippet && snippet.issues && snippet.issues.length > 0) {
