@@ -193,6 +193,10 @@ function getDomain(url) {
   }
 }
 
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // ---- Fetch GNews API for high quality news results ------------------------
 let gnewsQueue = Promise.resolve();
 let isPrimaryGNewsKeyExhausted = false;
@@ -204,7 +208,7 @@ function getGNewsApiKey() {
   return process.env.GNEWS_API_KEY;
 }
 
-async function fetchGNewsApi(query) {
+async function fetchGNewsApi(query, temporalInfo = null) {
   const apiKey = getGNewsApiKey();
   if (!apiKey) {
     return [];
@@ -219,18 +223,58 @@ async function fetchGNewsApi(query) {
           return;
         }
 
-        const cleanedQuery = query.replace(/\b\d{4}-\d{2}-\d{2}\b/g, '').trim();
+        let cleanedQuery = query.replace(/\b\d{4}-\d{2}-\d{2}\b/g, '').trim();
+
+        // Strip the resolved date tag if present to prevent empty keyword matches
+        if (temporalInfo && temporalInfo.date) {
+          cleanedQuery = cleanedQuery.replace(new RegExp(escapeRegExp(temporalInfo.date), 'gi'), '');
+        }
+        // Also strip common long date components to keep keywords clean
+        cleanedQuery = cleanedQuery
+          .replace(/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi, '')
+          .replace(/\b(january|february|march|april|may|june|july|august|september|october|november|december)\b/gi, '')
+          .replace(/\b\d{1,2},?\s+\d{4}\b/g, '') // e.g. "July 3, 2026" or "3, 2026"
+          .replace(/\s+/g, ' ')
+          .trim();
+
         const url = 'https://gnews.io/api/v4/search';
-        
+        const params = {
+          q: cleanedQuery,
+          lang: 'en',
+          max: 10,
+          apikey: activeKey
+        };
+
+        // If highly time sensitive, filter GNews by publication date using from/to parameters
+        if (temporalInfo && temporalInfo.isoDate) {
+          const date = new Date(temporalInfo.isoDate);
+          
+          // Start window: 3 days before the target date
+          const fromDate = new Date(date);
+          fromDate.setDate(fromDate.getDate() - 3);
+          params.from = fromDate.toISOString().slice(0, 19) + 'Z';
+
+          // End window
+          const toDate = new Date(date);
+          toDate.setHours(23, 59, 59);
+          
+          const now = new Date();
+          if (temporalInfo.label.includes('week') || temporalInfo.label.includes('weekend') || temporalInfo.label.includes('schedule') || temporalInfo.label.includes('fixtures')) {
+            const endLimit = new Date(now);
+            endLimit.setDate(endLimit.getDate() + 7);
+            params.to = endLimit.toISOString().slice(0, 19) + 'Z';
+          } else {
+            params.to = toDate.toISOString().slice(0, 19) + 'Z';
+          }
+        }
+
         console.info(`[webScraper] Querying GNews API for: "${cleanedQuery}" using key: ${activeKey.slice(0, 6)}...`);
+        if (params.from) {
+          console.info(`[webScraper] GNews Date range filter: ${params.from} to ${params.to}`);
+        }
         
         const { data } = await axios.get(url, {
-          params: {
-            q: cleanedQuery,
-            lang: 'en',
-            max: 10,
-            apikey: activeKey
-          },
+          params,
           timeout: 8000
         });
 
@@ -265,13 +309,19 @@ async function fetchGNewsApi(query) {
             const fallbackKey = process.env.GNEWS_API_KEY_FALLBACK;
             console.info(`[webScraper] Retrying GNews API query with fallback key: ${fallbackKey.slice(0, 6)}...`);
             
+            const fallbackParams = {
+              q: cleanedQuery,
+              lang: 'en',
+              max: 10,
+              apikey: fallbackKey
+            };
+            if (params.from) {
+              fallbackParams.from = params.from;
+              fallbackParams.to = params.to;
+            }
+
             const { data } = await axios.get('https://gnews.io/api/v4/search', {
-              params: {
-                q: query.replace(/\b\d{4}-\d{2}-\d{2}\b/g, '').trim(),
-                lang: 'en',
-                max: 10,
-                apikey: fallbackKey
-              },
+              params: fallbackParams,
               timeout: 8000
             });
 
@@ -352,7 +402,7 @@ async function fetchGoogleNewsRss(query) {
 }
 
 // ---- Zenserp search with query variation -----------------------------------
-async function searchSerp(query, isNewsOrSports, isHighlyTimeSensitive = false) {
+async function searchSerp(query, isNewsOrSports, isHighlyTimeSensitive = false, temporalInfo = null) {
   const makeSearch = async (tbmValue, tbsValue) => {
     if (!process.env.SERPAPI_KEY) {
       throw new Error('SERPAPI_KEY (Zenserp API Key) is not configured in the environment.');
@@ -380,7 +430,7 @@ async function searchSerp(query, isNewsOrSports, isHighlyTimeSensitive = false) 
 
   // If this is a news or sports query, and GNews API Key is available, prioritize it!
   if (isNewsOrSports && process.env.GNEWS_API_KEY) {
-    const gnewsResults = await fetchGNewsApi(query);
+    const gnewsResults = await fetchGNewsApi(query, temporalInfo);
     if (gnewsResults.length > 0) {
       console.info(`[webScraper] GNews API retrieved ${gnewsResults.length} live results for "${query}".`);
       return gnewsResults;
@@ -429,7 +479,7 @@ async function searchSerp(query, isNewsOrSports, isHighlyTimeSensitive = false) 
     // If GNews API key is configured, try it as a fallback before RSS
     if (process.env.GNEWS_API_KEY) {
       try {
-        const gnewsFallbackResults = await fetchGNewsApi(query);
+        const gnewsFallbackResults = await fetchGNewsApi(query, temporalInfo);
         if (gnewsFallbackResults.length > 0) {
           console.info(`[webScraper] GNews API fallback retrieved ${gnewsFallbackResults.length} live results.`);
           return gnewsFallbackResults;
@@ -506,7 +556,7 @@ async function runDiverseSearches(topic, primaryKeyword, isNewsOrSports, tempora
   const seenDomains = new Set();
 
   const searchPromises = queries.map(query =>
-    searchSerp(query, isNewsOrSports, isHighlyTimeSensitive)
+    searchSerp(query, isNewsOrSports, isHighlyTimeSensitive, temporalInfo)
       .catch(err => {
         console.warn(`[webScraper] Query search failed for "${query}": ${err.message}`);
         return [];
@@ -698,6 +748,9 @@ async function scrapePage(url, isNewsOrSports = false) {
   let finalUrl = url;
   if (url.includes('news.google.com')) {
     finalUrl = await decodeGoogleNewsUrl(url);
+    if (finalUrl.includes('news.google.com')) {
+      return { url: finalUrl, error: 'Failed to decode Google News redirect URL', citableFacts: [], domain: getDomain(finalUrl), sourceType: 'other' };
+    }
   }
 
   try {
