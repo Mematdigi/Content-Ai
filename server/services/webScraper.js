@@ -193,6 +193,113 @@ function getDomain(url) {
   }
 }
 
+// ---- Fetch GNews API for high quality news results ------------------------
+let gnewsQueue = Promise.resolve();
+let isPrimaryGNewsKeyExhausted = false;
+
+function getGNewsApiKey() {
+  if (isPrimaryGNewsKeyExhausted && process.env.GNEWS_API_KEY_FALLBACK) {
+    return process.env.GNEWS_API_KEY_FALLBACK;
+  }
+  return process.env.GNEWS_API_KEY;
+}
+
+async function fetchGNewsApi(query) {
+  const apiKey = getGNewsApiKey();
+  if (!apiKey) {
+    return [];
+  }
+
+  return new Promise((resolve) => {
+    gnewsQueue = gnewsQueue.then(async () => {
+      try {
+        const activeKey = getGNewsApiKey();
+        if (!activeKey) {
+          resolve([]);
+          return;
+        }
+
+        const cleanedQuery = query.replace(/\b\d{4}-\d{2}-\d{2}\b/g, '').trim();
+        const url = 'https://gnews.io/api/v4/search';
+        
+        console.info(`[webScraper] Querying GNews API for: "${cleanedQuery}" using key: ${activeKey.slice(0, 6)}...`);
+        
+        const { data } = await axios.get(url, {
+          params: {
+            q: cleanedQuery,
+            lang: 'en',
+            max: 10,
+            apikey: activeKey
+          },
+          timeout: 8000
+        });
+
+        // Delay 1.1 seconds between requests to protect GNews free API rate limit
+        await new Promise(r => setTimeout(r, 1100));
+
+        if (data && Array.isArray(data.articles)) {
+          resolve(data.articles.map(art => ({
+            title: art.title,
+            link: art.url,
+            snippet: art.description || art.content || '',
+            sourceUrl: art.source?.url || art.url
+          })));
+          return;
+        }
+        resolve([]);
+      } catch (err) {
+        const status = err.response?.status;
+        const errMsg = err.response?.data?.errors || err.message;
+        console.error(`[webScraper] GNews API query "${query}" failed:`, errMsg);
+
+        // Check if we hit a daily limit/quota error (typically 403) or custom limit block
+        const isQuotaExceeded = status === 403 || 
+          (typeof errMsg === 'string' && errMsg.toLowerCase().includes('limit')) ||
+          (Array.isArray(errMsg) && errMsg.some(msg => typeof msg === 'string' && msg.toLowerCase().includes('limit')));
+
+        if (isQuotaExceeded && !isPrimaryGNewsKeyExhausted && process.env.GNEWS_API_KEY_FALLBACK) {
+          console.warn(`[webScraper] Primary GNews API key is exhausted. Switching to fallback key...`);
+          isPrimaryGNewsKeyExhausted = true;
+          
+          try {
+            const fallbackKey = process.env.GNEWS_API_KEY_FALLBACK;
+            console.info(`[webScraper] Retrying GNews API query with fallback key: ${fallbackKey.slice(0, 6)}...`);
+            
+            const { data } = await axios.get('https://gnews.io/api/v4/search', {
+              params: {
+                q: query.replace(/\b\d{4}-\d{2}-\d{2}\b/g, '').trim(),
+                lang: 'en',
+                max: 10,
+                apikey: fallbackKey
+              },
+              timeout: 8000
+            });
+
+            await new Promise(r => setTimeout(r, 1100));
+
+            if (data && Array.isArray(data.articles)) {
+              resolve(data.articles.map(art => ({
+                title: art.title,
+                link: art.url,
+                snippet: art.description || art.content || '',
+                sourceUrl: art.source?.url || art.url
+              })));
+              return;
+            }
+          } catch (fallbackErr) {
+            const fallbackErrMsg = fallbackErr.response?.data?.errors || fallbackErr.message;
+            console.error(`[webScraper] GNews fallback key query failed:`, fallbackErrMsg);
+          }
+        }
+
+        // Delay on error too
+        await new Promise(r => setTimeout(r, 1100));
+        resolve([]);
+      }
+    });
+  });
+}
+
 // ---- Fetch Google News RSS for free real-time fallback ---------------------
 async function fetchGoogleNewsRss(query) {
   try {
@@ -271,6 +378,16 @@ async function searchSerp(query, isNewsOrSports, isHighlyTimeSensitive = false) 
     }));
   };
 
+  // If this is a news or sports query, and GNews API Key is available, prioritize it!
+  if (isNewsOrSports && process.env.GNEWS_API_KEY) {
+    const gnewsResults = await fetchGNewsApi(query);
+    if (gnewsResults.length > 0) {
+      console.info(`[webScraper] GNews API retrieved ${gnewsResults.length} live results for "${query}".`);
+      return gnewsResults;
+    }
+    console.warn(`[webScraper] GNews API returned 0 results for "${query}". Falling back to Zenserp...`);
+  }
+
   try {
     if (isNewsOrSports) {
       if (isHighlyTimeSensitive) {
@@ -307,7 +424,20 @@ async function searchSerp(query, isNewsOrSports, isHighlyTimeSensitive = false) 
         errMsg.toLowerCase().includes('key')
       ));
 
-    console.warn(`[webScraper] Zenserp API search failed (${errMsg}). Trying Google News RSS fallback...`);
+    console.warn(`[webScraper] Zenserp API search failed (${errMsg}). Trying fallbacks...`);
+
+    // If GNews API key is configured, try it as a fallback before RSS
+    if (process.env.GNEWS_API_KEY) {
+      try {
+        const gnewsFallbackResults = await fetchGNewsApi(query);
+        if (gnewsFallbackResults.length > 0) {
+          console.info(`[webScraper] GNews API fallback retrieved ${gnewsFallbackResults.length} live results.`);
+          return gnewsFallbackResults;
+        }
+      } catch (gnewsErr) {
+        console.warn(`[webScraper] GNews API fallback failed: ${gnewsErr.message}`);
+      }
+    }
 
     try {
       const rssResults = await fetchGoogleNewsRss(query);
@@ -319,10 +449,10 @@ async function searchSerp(query, isNewsOrSports, isHighlyTimeSensitive = false) 
       console.warn(`[webScraper] RSS fallback failed: ${rssErr.message}`);
     }
 
-    // If RSS fallback failed (returned 0 results or threw) and it was a quota/limit/auth error,
+    // If RSS and GNews fallbacks failed (returned 0 results or threw) and it was a quota/limit/auth error,
     // throw the original error so that the system handles it or reports it rather than returning mock results.
     if (isQuotaOrAuthError) {
-      throw new Error(`Zenserp search failed (limit/quota/config issue) and RSS fallback retrieved no authentic results. Original error: ${errMsg}`);
+      throw new Error(`Zenserp search failed (limit/quota/config issue) and fallbacks retrieved no authentic results. Original error: ${errMsg}`);
     }
 
     // NEVER fall back to mock data for time-sensitive queries — returning
