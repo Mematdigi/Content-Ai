@@ -1113,22 +1113,8 @@
 .clamp-2 { @include clamp-lines(2); }
 .clamp-3 { @include clamp-lines(3); }
 
-// ---- Auth shell feature list ------------------------------------------
-.auth-shell .feature-list {
-  list-style: none;
-  padding: 0;
-  margin: 1.5rem 0 0 0;
+// ---- Auth shell feature list (moved to layout) -------------------------
 
-  li {
-    padding: 0.4rem 0;
-    color: rgba(255, 255, 255, 0.92);
-
-    i {
-      margin-right: 0.5rem;
-      color: rgba(255, 255, 255, 0.85);
-    }
-  }
-}
 
 // ---- Auth logo mark in brand panel ------------------------------------
 .auth-shell__logo .logo-mark,
