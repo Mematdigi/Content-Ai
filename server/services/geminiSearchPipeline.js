@@ -260,6 +260,10 @@ REMINDER: Only use facts from the GROUNDED FACTS section above. If something is 
     });
   }
 
+  // Run the same humanizer pass as other pipelines
+  const { humanizePass } = require('./aiPipeline');
+  const humanized = await humanizePass(cleanContent, topic, primaryKeyword);
+
   const pipelineSteps = [
     {
       step: 'research',
@@ -273,17 +277,23 @@ REMINDER: Only use facts from the GROUNDED FACTS section above. If something is 
       durationMs: writeDurationMs,
       status: 'ok',
     },
+    {
+      step: 'humanize',
+      model: humanized.model,
+      durationMs: humanized.durationMs,
+      status: humanized.status,
+    },
   ];
 
   return {
-    content: cleanContent,
+    content: humanized.content,
     metaTitle,
     metaDescription,
     slug,
     sources,
     pipelineSteps,
-    aiScoreBefore: 92,
-    aiScoreAfter: 96,
+    aiScoreBefore: humanized.aiScoreBefore,
+    aiScoreAfter: humanized.aiScoreAfter,
   };
 }
 
