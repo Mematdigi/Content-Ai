@@ -257,7 +257,7 @@ async function fetchGNewsApi(query, temporalInfo = null) {
         // If highly time sensitive, filter GNews by publication date using from/to parameters
         if (temporalInfo && temporalInfo.isoDate) {
           const date = new Date(temporalInfo.isoDate);
-          
+
           // Start window: 3 days before the target date
           const fromDate = new Date(date);
           fromDate.setDate(fromDate.getDate() - 3);
@@ -266,7 +266,7 @@ async function fetchGNewsApi(query, temporalInfo = null) {
           // End window
           const toDate = new Date(date);
           toDate.setHours(23, 59, 59);
-          
+
           const now = new Date();
           if (temporalInfo.label.includes('week') || temporalInfo.label.includes('weekend') || temporalInfo.label.includes('schedule') || temporalInfo.label.includes('fixtures')) {
             const endLimit = new Date(now);
@@ -281,7 +281,7 @@ async function fetchGNewsApi(query, temporalInfo = null) {
         if (params.from) {
           console.info(`[webScraper] GNews Date range filter: ${params.from} to ${params.to}`);
         }
-        
+
         const { data } = await axios.get(url, {
           params,
           timeout: 8000
@@ -306,18 +306,18 @@ async function fetchGNewsApi(query, temporalInfo = null) {
         console.error(`[webScraper] GNews API query "${query}" failed:`, errMsg);
 
         // Check if we hit a daily limit/quota error (typically 403) or custom limit block
-        const isQuotaExceeded = status === 403 || 
+        const isQuotaExceeded = status === 403 ||
           (typeof errMsg === 'string' && errMsg.toLowerCase().includes('limit')) ||
           (Array.isArray(errMsg) && errMsg.some(msg => typeof msg === 'string' && msg.toLowerCase().includes('limit')));
 
         if (isQuotaExceeded && !isPrimaryGNewsKeyExhausted && process.env.GNEWS_API_KEY_FALLBACK) {
           console.warn(`[webScraper] Primary GNews API key is exhausted. Switching to fallback key...`);
           isPrimaryGNewsKeyExhausted = true;
-          
+
           try {
             const fallbackKey = process.env.GNEWS_API_KEY_FALLBACK;
             console.info(`[webScraper] Retrying GNews API query with fallback key: ${fallbackKey.slice(0, 6)}...`);
-            
+
             const fallbackParams = {
               q: cleanedQuery,
               lang: 'en',
@@ -374,20 +374,20 @@ async function fetchGoogleNewsRss(query) {
 
     const results = [];
     const itemMatches = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
-    
+
     for (const match of itemMatches) {
       const itemContent = match[1];
       const titleMatch = itemContent.match(/<title>([\s\S]*?)<\/title>/);
       const linkMatch = itemContent.match(/<link>([\s\S]*?)<\/link>/);
       const descMatch = itemContent.match(/<description>([\s\S]*?)<\/description>/);
-      
+
       if (titleMatch && linkMatch) {
         let title = titleMatch[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim();
         let link = linkMatch[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim();
-        let snippet = descMatch 
+        let snippet = descMatch
           ? descMatch[1].replace(/<[^>]*>?/gm, '').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim()
           : '';
-          
+
         // Decode HTML entities (like &amp; &quot;)
         title = title.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
         snippet = snippet.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
@@ -469,7 +469,7 @@ async function searchSerp(query, isNewsOrSports, isHighlyTimeSensitive = false, 
     return await makeSearch(null, null);
   } catch (err) {
     const errMsg = err.response?.data?.error || err.message;
-    const isQuotaOrAuthError = 
+    const isQuotaOrAuthError =
       err.message?.includes('configured') ||
       err.message?.toLowerCase().includes('quota') ||
       err.message?.toLowerCase().includes('limit') ||
@@ -716,7 +716,7 @@ async function decodeGoogleNewsUrl(sourceUrl) {
     }
 
     const executeUrl = "https://news.google.com/_/DotsSplashUi/data/batchexecute";
-    const geoArray = params.geoArray || [["X","X",["X","X"],null,null,1,1,"US:en",null,1,null,null,null,null,null,0,1],"X","X",1,[1,1,1],1,1,null,0,0,null,0];
+    const geoArray = params.geoArray || [["X", "X", ["X", "X"], null, null, 1, 1, "US:en", null, 1, null, null, null, null, null, 0, 1], "X", "X", 1, [1, 1, 1], 1, 1, null, 0, 0, null, 0];
     const payloadStr = JSON.stringify([
       "garturlreq",
       geoArray,
@@ -753,7 +753,7 @@ async function scrapePage(url, isNewsOrSports = false) {
   if (url.includes('mock.')) {
     return getMockScrapedPage(url);
   }
-  
+
   let finalUrl = url;
   if (url.includes('news.google.com')) {
     finalUrl = await decodeGoogleNewsUrl(url);
@@ -857,7 +857,7 @@ function getMockSerpResults(query) {
 
 function getMockScrapedPage(url) {
   const domain = getDomain(url);
-  
+
   if (url.includes('colombia-vs-portugal-preview')) {
     return {
       url,
@@ -1023,10 +1023,10 @@ function extractCompetitorLSI(scraped, primaryKeyword) {
     'so', 'than', 'too', 'very', 'just', 'about', 'more', 'most', 'some',
     'any', 'all', 'no', 'not', 'your', 'our', 'their', 'can', 'how', 'what', 'why', 'when', 'where'
   ]);
-  
+
   const banned = new Set((primaryKeyword || '').toLowerCase().split(/\s+/));
   const counts = new Map();
-  
+
   scraped.forEach((page) => {
     if (!page.excerpt) return;
     const words = page.excerpt.toLowerCase().split(/[^a-z]+/);
@@ -1074,8 +1074,8 @@ async function fetchResearchBrief({
   const isTimeSensitive = timeKeywords.some(kw => text.includes(kw));
 
   const isNewsOrSports = (niche === 'sports') ||
-                         (articleType.toLowerCase().includes('news')) ||
-                         isTimeSensitive;
+    (articleType.toLowerCase().includes('news')) ||
+    isTimeSensitive;
 
   let realResults = [];
   let scraped = [];
@@ -1242,11 +1242,11 @@ async function fetchResearchBrief({
   if (niche === 'sports') {
     const snippetsText = sources.map(s => `${s.title} ${s.snippet}`).join(' ').toLowerCase();
     const hasNoMeetingScheduled = snippetsText.includes('no future meetings scheduled') ||
-                                  snippetsText.includes('do not have any future meetings') ||
-                                  snippetsText.includes('no meetings scheduled') ||
-                                  snippetsText.includes('not scheduled') ||
-                                  snippetsText.includes('hypothetical') ||
-                                  snippetsText.includes('no matches scheduled');
+      snippetsText.includes('do not have any future meetings') ||
+      snippetsText.includes('no meetings scheduled') ||
+      snippetsText.includes('not scheduled') ||
+      snippetsText.includes('hypothetical') ||
+      snippetsText.includes('no matches scheduled');
     const containsStadium = snippetsText.includes('stadium') || snippetsText.includes('arena') || snippetsText.includes('venue') || snippetsText.includes('field') || snippetsText.includes('park');
     const containsKickoff = snippetsText.includes('kickoff') || snippetsText.includes('kick-off') || snippetsText.includes('scheduled for') || snippetsText.includes('match on') || snippetsText.includes('game on') || snippetsText.includes('clash on') || snippetsText.includes('play on');
 

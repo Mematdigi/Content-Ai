@@ -107,7 +107,11 @@ export default function Generator() {
       return;
     }
     try {
-      const article = await dispatch(generateArticleThunk(form)).unwrap();
+      const payload = {
+        ...form,
+        pipelineType: mode === 'latest-news' ? 'gemini-search' : 'standard'
+      };
+      const article = await dispatch(generateArticleThunk(payload)).unwrap();
       toast.success('Article generated!');
       navigate(`/articles/${article._id}`);
     } catch (err) {
@@ -221,7 +225,7 @@ export default function Generator() {
 
         <Row className="g-4 justify-content-center mt-3">
           {/* Card 1: 10-Steps Article */}
-          <Col xs={12} md={5} lg={4}>
+          <Col xs={12} md={6} lg={4}>
             <div className="writesonic-card" onClick={() => navigate('/generate/wizard')}>
               <div className="image-panel" style={{ background: '#f5f3ff' }}>
                 <span className="badge rec-badge bg-success text-white">Recommended</span>
@@ -248,7 +252,7 @@ export default function Generator() {
           </Col>
 
           {/* Card 2: Instant Article */}
-          <Col xs={12} md={5} lg={4}>
+          <Col xs={12} md={6} lg={4}>
             <div className="writesonic-card" onClick={() => setMode('instant')}>
               <div className="image-panel" style={{ background: '#ecfeff' }}>
                 <span className="badge rec-badge bg-warning text-dark">Beta</span>
@@ -266,6 +270,31 @@ export default function Generator() {
                   <li>Keywords (Optional)</li>
                   <li>Auto Competitor Scrape</li>
                   <li>We Handle the Rest!</li>
+                </ul>
+                <button className="btn-start">Click to start</button>
+              </div>
+            </div>
+          </Col>
+
+          {/* Card 3: Latest News & Data */}
+          <Col xs={12} md={6} lg={4}>
+            <div className="writesonic-card" onClick={() => setMode('latest-news')}>
+              <div className="image-panel" style={{ background: '#ecfdf5' }}>
+                <span className="badge rec-badge bg-primary text-white">Live Search</span>
+                <span className="badge time-badge bg-light text-dark"><i className="bi bi-clock me-1" /> 1 min</span>
+                <div style={{ fontSize: '3rem', color: '#059669' }}>
+                  <i className="bi bi-globe-americas" />
+                </div>
+              </div>
+              <div className="card-body">
+                <h3 className="h5 mb-2 font-weight-bold" style={{ color: 'var(--text)' }}>Latest News & Data</h3>
+                <p className="text-muted small mb-3">Powered by Google Search Grounding to write sports & news articles with 100% accurate, live facts.</p>
+                <ul>
+                  <li>Real-time Google Search Grounding</li>
+                  <li>Automatic Citations & Sources</li>
+                  <li>No Paywall / Scraper blocks</li>
+                  <li>Accurate squads, venue, match time</li>
+                  <li>One-click fast generation</li>
                 </ul>
                 <button className="btn-start">Click to start</button>
               </div>
@@ -332,8 +361,8 @@ export default function Generator() {
           <Button variant="link" className="p-0 text-muted small mb-2 text-decoration-none" onClick={resetMode}>
             <i className="bi bi-arrow-left me-1" /> Back to mode selection
           </Button>
-          <h1 className="page__title">Instant Article Writer</h1>
-          <p className="page__subtitle">Configure guidelines on one page and launch the generator.</p>
+          <h1 className="page__title">{mode === 'latest-news' ? 'Latest News & Data Writer' : 'Instant Article Writer'}</h1>
+          <p className="page__subtitle">{mode === 'latest-news' ? 'Generate articles grounded in real-time Google search results, powered by Gemini.' : 'Configure guidelines on one page and launch the generator.'}</p>
         </div>
       </div>
 

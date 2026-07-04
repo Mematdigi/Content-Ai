@@ -27,14 +27,14 @@ const { humanize, postLlmValidation } = require('./humanizer');
 // ---------- Niche Classifier Helper ----------------------------------------
 function classifyNiche(topic = '', primaryKeyword = '') {
   const text = `${topic} ${primaryKeyword}`.toLowerCase();
-  
+
   // Sports indicators
   const sportsKeywords = [
     'vs', 'match', 'cup', 'league', 'stadium', 'football', 'soccer', 'cricket', 'basketball',
     'nba', 'nfl', 'player', 'lineup', 'prediction', 'win', 'watch', 'live', 'kickoff',
     'betting', 'odds', 'premier league', 'la liga', 'world cup', 'euros', 'copa america', 'champions league'
   ];
-  
+
   // Finance/payments indicators
   const financeKeywords = [
     'payment', 'bank', 'remittance', 'money', 'wise', 'paypal', 'stripe', 'fee', 'firc', 'fira',
@@ -292,7 +292,7 @@ async function writeContent({ outline, topic, brief, tone, audience, language, p
   if (niche === 'sports') {
     if (isMatchup) {
       snippetIntroRule = `Start the very first paragraph directly with a professional, clear, snippet-friendly match summary. If the match is confirmed/scheduled in the research brief, summarize the kickoff details (date, time, venue). If the match is hypothetical or not officially scheduled (such as a potential knockout stage meeting like Brazil vs Germany), explicitly frame it as a projected, potential, or hypothetical future matchup (e.g. "A potential World Cup 2026 clash between Brazil and Germany would be one of the most anticipated matchups..."). Keep the introduction under 120 words.`;
-      
+
       styleRules = `Write as an expert sports journalist and analyst (similar to writing for The Athletic or ESPN). Avoid cheesy AI language and conversational filler like "Circle your calendars!", "Let's break down...", "Here's the truth...", "Think of it this way...", "Hey there!", "Don't worry!", "Let's dive in", "Let's jump in", "First things first", or "In this post...".
 Instead, write with authority and sharp football intelligence, focusing on contrasting team tactics (e.g. one team's possession-based midfield challenging the other's defensive structure).`;
 
@@ -340,7 +340,7 @@ Instead, write with authority and sharp football intelligence, focusing on contr
 - Provide a reasoned, detailed prediction based on these tactical dynamics.`;
     } else {
       snippetIntroRule = `Start the very first paragraph directly with a professional, clear, snippet-friendly summary of the tournament status, general schedules, group standings, or team news described in the Research Brief. Keep the introduction under 120 words.`;
-      
+
       styleRules = `Write as an expert sports journalist and analyst (similar to writing for The Athletic or ESPN). Avoid cheesy AI language and conversational filler. Write with authority, focusing on verified player updates, team news, group standings, or tournament schedules.`;
 
       chartRule = `Do NOT output any win probability chart or predicted matchup visual blocks, since this is a general sports update and not a specific match between two teams.`;
@@ -359,11 +359,11 @@ Instead, write with authority and sharp football intelligence, focusing on contr
     }
   } else if (niche === 'finance') {
     snippetIntroRule = `Start the very first paragraph directly with a professional, clear, snippet-friendly statement of the problem and the answer (e.g., "International payments in India can be received through bank transfers, Wise, PayPal, Stripe, and other payment platforms. The right method depends on fees, settlement time, and business requirements."). Keep the introduction under 120 words.`;
-    
+
     styleRules = `Write like a financial advisor and friend explaining it simply. Use natural contractions ("don't", "it's", "you'll") and direct, action-oriented verbs.
 Use bold lead-ins for key points (e.g., "**Here is the truth:**", "**The best part?**", "**Why does this matter?**").
 Use friendly transitions to guide the reader: "Look:", "But that's not all...", "Here's how to get started:", "The catch?", "Think about it like this...".`;
- 
+
     chartRule = `Construct a beautiful, responsive visual comparison chart comparing metrics (e.g. fees, settlement times) using this exact HTML structure within the text:
      <div class="custom-chart">
        <h4 class="custom-chart__title">Comparison of Platform Fees (%)</h4>
@@ -560,7 +560,7 @@ Output clean markdown only. No preamble, no notes.`;
 
     for (let i = 0; i < sections.length; i++) {
       const section = sections[i];
-      
+
       // Calculate section target word count dynamically:
       let sectionTarget = 200;
       if (!section.isIntro) {
@@ -577,9 +577,9 @@ Output clean markdown only. No preamble, no notes.`;
       }
 
       if (onProgress) {
-        onProgress({ 
-          step: 'writing', 
-          label: `Writing section ${i + 1} of ${sections.length}: ${section.heading}...` 
+        onProgress({
+          step: 'writing',
+          label: `Writing section ${i + 1} of ${sections.length}: ${section.heading}...`
         });
       }
 
@@ -780,13 +780,13 @@ async function humanizePass(content, topic, primaryKeyword) {
 
   try {
     const wordCount = local.text.trim().split(/\s+/).length;
-    
+
     // If article is large, humanize section by section in parallel to prevent output length constraints/truncation
     if (wordCount >= 1800) {
       const parts = local.text.split(/(?=^##\s+[^#])/gm);
       if (parts.length > 1) {
         console.info(`[aiPipeline] Humanizing article in parallel (${parts.length} sections)...`);
-        
+
         // Define a system prompt for individual section humanizing to prevent duplication
         const sectionSystem = `You are a senior journalist rewriting the provided text block to sound highly human-written, engaging, and polished. Study and follow the writing style of this lifestyle blog article: https://flypped.com/lifestyle/benefits-of-buttermilk
  
@@ -879,7 +879,7 @@ async function humanizePass(content, topic, primaryKeyword) {
 // =========================================================================
 
 
-async function runPipeline(input, onProgress = () => {}) {
+async function runPipeline(input, onProgress = () => { }) {
   const steps = [];
 
   onProgress({ step: 'research', label: 'Gathering web sources...' });
@@ -1241,7 +1241,7 @@ function mockArticle(topic, outline, targetWordCount = 1200) {
 
   if (niche === 'sports') {
     intro = `The highly anticipated clash of ${capitalizedTopic} is scheduled to take place soon. Sports fans around the world are looking forward to a thrilling contest, analyzing lineups, form, and tactical matchups. In this preview, we cover everything you need to know about kickoff times, head-to-head stats, and predictions.`;
-    
+
     body = `
 ## Match Preview: ${capitalizedTopic} details
 The upcoming match is drawing massive fan interest. Finding the exact kickoff details, date, and venue is crucial for fans planning to watch. Both teams enter this match with high stakes, looking to confirm their position in the standings.
@@ -1286,7 +1286,7 @@ Written by the Editorial Team.
 `;
   } else if (niche === 'finance') {
     intro = `Managing ${capitalizedTopic} effectively is crucial for businesses and freelancers looking to optimize transaction fees and compliance. In this comprehensive guide, we explain the best platforms, fee structures, and regulatory guidelines to ensure hassle-free transfers.`;
-    
+
     body = `
 ## Introduction to ${capitalizedTopic}
 Understanding the basics of international remittance is key to avoiding hidden markup costs. Navigating RBI and FEMA regulations ensures that all transactions are compliant.
@@ -1325,7 +1325,7 @@ Written by the Editorial Team.
 `;
   } else {
     intro = `Understanding the core concepts of ${capitalizedTopic} is essential for success. In this guide, we break down what matters, why it is key, and how to implement best practices to get the most value out of ${capitalizedTopic}.`;
-    
+
     body = `
 ## What is ${capitalizedTopic}?
 An overview of ${capitalizedTopic} and its applications in the modern industry.
