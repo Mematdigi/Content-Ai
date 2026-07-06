@@ -712,20 +712,23 @@ async function humanizePass(content, topic, primaryKeyword) {
   let nicheGuidelines = '';
   if (niche === 'sports') {
     nicheGuidelines = `- Write with strong, authoritative sports analysis in the style of premium sports journalists (e.g., ESPN, The Athletic).
-- Each paragraph must be 40–90 words (2–4 lines). No single-sentence paragraphs, no walls of text.
+- Vary paragraph length and structure dynamically to maintain a human reading rhythm. Mix short, punchy 1-sentence paragraphs (for key points, transition, or dramatic emphasis) with 2-4 sentence paragraphs. Avoid large walls of text (no paragraph should exceed 100 words).
 - Vary sentence length dynamically (blend punchy 5-word sentences with longer 25-word tactical breakdowns) to create a natural, human reading rhythm.
 - Use natural contractions extensively (don't, it's, there's, can't, won't) to keep the tone engaging and organic.
 - Absolutely ban generic introductions ("Circle your calendars!", "Let's dive in", "Here's the breakdown"). Start directly with the tactical stakes or preview facts.
+- Avoid repetitive phrasing. Once you state a historic milestone, result, or upset, do not repeat the word "historic" or the same sentiment over and over. Move the narrative forward to keep the writing progressive and engaging.
+- Ban dramatic, generic AI sports clichés: "witnessed a monumental moment", "sending their fans into euphoria", "etched in the memories", "bitter disappointment", "glimmer of hope".
+- Write with specific tactical depth: mention team formations, substitutions, key player performances/ratings, coaching decisions, and stadium/crowd atmosphere.
 - Maintain all tactical profiles, player names, stadium info, and exact numbers exactly as verified. Do NOT hallucinate.
 - Preserve all image placeholders (<!-- IMAGE: ... -->), blockquotes, tables, and HTML chart blocks exactly as they appear.`;
   } else if (niche === 'finance') {
     nicheGuidelines = `- Highly Conversational & User-Friendly: Talk directly to the reader using "you" and "I/we". Use contractions (e.g., "don't", "it's", "here's").
-- Each paragraph must be 40–90 words (2–4 lines). No single-sentence paragraphs, no walls of text.
+- Vary paragraph length and structure dynamically to maintain a human reading rhythm. Mix short, punchy 1-sentence paragraphs with 2-4 sentence paragraphs. Avoid large walls of text (no paragraph should exceed 100 words).
 - Engaging Transitions & Bold Formatting: Use bold lead-ins to grab attention (e.g., "**Here is the catch:**", "**The best part?**", "**Look:**", "**Why is this important?**").
 - Retain all facts, custom charts, structured tables, subheadings, image placeholders, blockquotes, and schema structure from the original text. Ensure factual accuracy.`;
   } else {
     nicheGuidelines = `- Highly Conversational, Professional & User-Friendly: Talk directly to the reader. Use contractions naturally.
-- Each paragraph must be 40–90 words (2–4 lines). No single-sentence paragraphs, no walls of text.
+- Vary paragraph length and structure dynamically to maintain a human reading rhythm. Mix short, punchy 1-sentence paragraphs with 2-4 sentence paragraphs. Avoid large walls of text (no paragraph should exceed 100 words).
 - Avoid robotic structures: Do NOT use sequential lists like "First,", "Second,", "Lastly," or dry transitions. Use smooth, conversational connections.
 - Vary sentence structures and paragraph lengths dynamically to make the article sound like an expert explaining the topic face-to-face.
 - Avoid AI buzzwords and dry language: Never use "delve", "moreover", "furthermore", "in conclusion", "testament", "it is crucial to remember". Write simply and dynamically.
@@ -747,7 +750,7 @@ async function humanizePass(content, topic, primaryKeyword) {
     - Do NOT use phrases like: "In today's digital world", "In today's fast-paced world", "Dive into", "Delve into", "Unlock", "Harness", "Elevate", "Revolutionize", "It is important to note", "Seamlessly", "Robust", "Cutting-edge", "Furthermore", "Moreover", "Consequently", "Whether you're", "Imagine", "Let's explore", "circle your calendars", "let's break down", "does wonders", "is a breeze", "powerhouse", "look no further", "in summary".
     - Avoid generic introductions or meta-commentary like "In this article, we will...".
  2. Paragraph Readability:
-    - Keep paragraphs short and easy to read. Each paragraph MUST be between 40 and 90 words, and exactly 2 to 4 lines. No single-sentence paragraphs, and no huge walls of text.
+    - Keep paragraphs short and easy to read. Vary paragraph length and structure dynamically (blend punchy 1-sentence paragraphs with 2-4 sentence paragraphs) to create a natural, human reading rhythm. Avoid huge walls of text (no paragraph should exceed 100 words).
     - CRITICAL: If a paragraph or section has a large amount of details or context to explain, do NOT write it as a single block. Break it down logically using subheadings (H3/H4) and describe details using clean bullet points and short paragraphs to keep the text natural and readable like human writing.
  3. Heading Structure:
     - Ensure there is only one H1 title.
@@ -802,7 +805,7 @@ async function humanizePass(content, topic, primaryKeyword) {
     - Do NOT use phrases like: "In today's digital world", "In today's fast-paced world", "Dive into", "Delve into", "Unlock", "Harness", "Elevate", "Revolutionize", "It is important to note", "Seamlessly", "Robust", "Cutting-edge", "Furthermore", "Moreover", "Consequently", "Whether you're", "Imagine", "Let's explore", "circle your calendars", "let's break down", "does wonders", "is a breeze", "powerhouse", "look no further", "in summary".
     - Avoid generic introductions or meta-commentary like "In this article, we will...".
  2. Paragraph Readability:
-    - Keep paragraphs short and easy to read. Each paragraph MUST be between 40 and 90 words, and exactly 2 to 4 lines. No single-sentence paragraphs, and no huge walls of text.
+    - Keep paragraphs short and easy to read. Vary paragraph length and structure dynamically (blend punchy 1-sentence paragraphs with 2-4 sentence paragraphs) to create a natural, human reading rhythm. Avoid huge walls of text (no paragraph should exceed 100 words).
     - CRITICAL: If a paragraph or section has a large amount of details or context to explain, do NOT write it as a single block. Break it down logically using subheadings (H3/H4) and describe details using clean bullet points and short paragraphs to keep the text natural and readable like human writing.
  3. Heading Structure:
     - Ensure H2 and H3 headings include the primary keyword "${primaryKeyword}" in exact match.
@@ -874,9 +877,6 @@ async function humanizePass(content, topic, primaryKeyword) {
   }
 }
 
-// =========================================================================
-// PUBLIC ORCHESTRATOR
-// =========================================================================
 
 
 async function runPipeline(input, onProgress = () => { }) {

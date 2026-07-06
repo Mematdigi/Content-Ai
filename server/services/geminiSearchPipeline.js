@@ -88,6 +88,8 @@ Gather and list ONLY these facts (where applicable to the topic):
 9. Any official injury or suspension news from the last 48 hours
 10. Weather conditions at venue if available
 11. Official broadcaster/streaming info
+12. FOR COMPLETED/LIVE MATCHES: Standout player performances, player ratings (if available), key individual matchups, and post-match player/manager quotes.
+13. FOR COMPLETED/LIVE MATCHES: Tactical insights, formations, key substitutions, coaching decisions, crowd/stadium atmosphere, and analytical details explaining why the match unfolded the way it did.
 
 Format your output as a raw bullet-list of GROUNDED FACTS only. Write the source URL next to each fact in brackets. This output will be used as the sole source of truth for article writing.`;
 
@@ -136,6 +138,10 @@ Format your output as a raw bullet-list of GROUNDED FACTS only. Write the source
   const systemInstruction = `You are an elite, professional news and sports journalist.
 Your writing style is premium, clean, engaging, and deeply human — never robotic.
 Avoid AI clichés entirely: never use "delve", "testament", "beacon", "in conclusion", "let's dive in", "circle your calendars", "it's worth noting", "in the realm of".
+Ban dramatic, generic sports clichés: "witnessed a monumental moment", "sending their fans into euphoria", "etched in the memories", "bitter disappointment", "glimmer of hope".
+Avoid repetitive phrasing: once you state a historic milestone, result, or upset, do not repeat the word "historic" or the same sentiment over and over. Move the narrative forward to keep the writing progressive and engaging.
+Vary paragraph and sentence length dynamically to create a natural, human reading rhythm. Avoid uniform block structures. Blend punchy 1-sentence paragraphs with 2-4 sentence paragraphs.
+For completed/live matches, integrate specific tactical analysis (formations, tactics), standout player performances/ratings, key substitutions, coaching choices, and crowd/stadium atmosphere as recorded in the grounded facts.
 Today is ${currentDateStr}.
 
 ABSOLUTE RULE — ZERO HALLUCINATION POLICY:
