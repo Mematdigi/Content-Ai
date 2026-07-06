@@ -77,14 +77,17 @@ CRITICAL RULES:
 - Do NOT guess, infer, or fill gaps from memory. Unknown = state it as unknown.
 
 Gather and list ONLY these facts (where applicable to the topic):
-1. EXACT match date, kickoff time (with timezone), and venue/stadium name and city
-2. EXACT confirmed squad/lineup for each team (only confirmed players, not predicted)
-3. EXACT recent match results / form (last 5 matches for each team)
-4. EXACT tournament bracket or standings context (which round, who they beat to get here)
-5. EXACT head-to-head record between the two teams/entities
-6. Any official injury or suspension news from the last 48 hours
-7. Weather conditions at venue if available
-8. Official broadcaster/streaming info
+1. MATCH STATUS: Has the match/event already occurred (Completed), is it currently in progress (Live), or is it in the future (Upcoming)?
+2. EXACT match date, kickoff time (with timezone), and venue/stadium name and city
+3. FOR COMPLETED MATCHES: What was the final score/result? Who were the goal scorers (with minutes), assist makers, and other key match events (cards, penalties, key saves, VAR decisions, etc.)?
+4. FOR LIVE/IN-PROGRESS MATCHES: What is the current score and current minute of the match? Who has scored so far?
+5. EXACT confirmed squad/lineup (or actual starting lineup that played) for each team
+6. EXACT recent match results / form (last 5 matches for each team)
+7. EXACT tournament bracket or standings context (which round, who they beat to get here, and impact of this match on tournament standings/progress)
+8. EXACT head-to-head record between the two teams/entities
+9. Any official injury or suspension news from the last 48 hours
+10. Weather conditions at venue if available
+11. Official broadcaster/streaming info
 
 Format your output as a raw bullet-list of GROUNDED FACTS only. Write the source URL next to each fact in brackets. This output will be used as the sole source of truth for article writing.`;
 
@@ -92,7 +95,6 @@ Format your output as a raw bullet-list of GROUNDED FACTS only. Write the source
     contents: [{ role: 'user', parts: [{ text: factGatheringPrompt }] }],
     generationConfig: {
       temperature: 0.0,
-      maxOutputTokens: 2048,
     },
   });
 
@@ -152,8 +154,15 @@ STRUCTURE RULES:
 4. Every heading must be unique and descriptive.
 5. Include a table (match schedule, stats, or head-to-head) under at least one H2.
 6. Include a bulleted list under at least one heading.
-7. Include 2-3 image placements using: ![Descriptive Alt Text](placeholder_url)
-8. If the topic is a match/event prediction, include this win probability chart HTML:
+7. Include 2-3 image placements using this exact format: <!-- IMAGE: [descriptive alt text] -->
+8. Match-state-based content generation:
+   - If the grounded facts state that the match is Completed or Live:
+     * Write the article as a post-match report or live recap (e.g., highlighting the final score, active live status, goal scorers, and key moments).
+     * Do NOT include the win probability chart. Instead, under at least one H2, include a structured match facts table (showing teams, final score, goal scorers with minutes, and venue).
+     * Make sure the title, H1, H2s, and introduction reflect that the match has occurred or is occurring (e.g., using past tense, mentioning the result/score).
+   - If the grounded facts show the match is Upcoming (future):
+     * Write the article as a pre-match prediction or preview.
+     * Include this win probability chart HTML:
 <div class="custom-chart">
   <h4 class="custom-chart__title">Win Probability (%)</h4>
   <div class="chart-bar-row">
